@@ -9,8 +9,6 @@ node_modules/
 .DS_Store
 cloudflared
 ngrok
-*.db
-*.db.before_*
 *.bak
 *_backup.py
 *_before_*.py
