@@ -39,6 +39,32 @@ ZIMBABWE_CITIES = [
 ]
 
 
+# Load the full subject list from the curriculum DB at import time.
+# Falls back to a sensible default if the DB is unavailable.
+def _load_allowed_subjects():
+    try:
+        import sqlite3 as _sq, os as _os
+        _db = _os.environ.get("DB_PATH") or _os.path.join(
+            _os.path.dirname(_os.path.abspath(__file__)),
+            "digital_classroom.db",
+        )
+        _c = _sq.connect(_db)
+        rows = _c.execute(
+            "SELECT DISTINCT subject FROM curriculum "
+            "WHERE subject IS NOT NULL AND subject != '' ORDER BY subject"
+        ).fetchall()
+        _c.close()
+        if rows:
+            return [r[0] for r in rows]
+    except Exception as _e:
+        print("SUBJECTS_ALLOWED: DB load failed, using default:", _e)
+    return ["Maths","English","Science","Social Studies","Geography","History",
+            "Biology","Chemistry","Physics","Economics","Accounting",
+            "Shona","Ndebele","Agriculture","Commerce","Computer Studies",
+            "Heritage Studies","Religious Studies"]
+
+SUBJECTS_ALLOWED = _load_allowed_subjects()
+
 def pick_random_tutor():
     return random.choice(TUTOR_NAMES)
 
@@ -302,7 +328,14 @@ REGISTER_HTML = (
     "<option>Form 6</option>"
     "</select></div>"
     "<div class='form-group'><label>Age *</label><input type='number' name='age' min='4' max='99' required></div>"
-    "<div class='form-group'><label>Subjects you want to study * (choose one or more)</label><label style='display:block;margin:6px 0'><input type='checkbox' name='subjects' value='Maths' style='width:auto;margin-right:8px'>Maths</label><label style='display:block;margin:6px 0'><input type='checkbox' name='subjects' value='English' style='width:auto;margin-right:8px'>English</label><label style='display:block;margin:6px 0'><input type='checkbox' name='subjects' value='Science' style='width:auto;margin-right:8px'>Science</label><label style='display:block;margin:6px 0'><input type='checkbox' name='subjects' value='Social Studies' style='width:auto;margin-right:8px'>Social Studies</label><label style='display:block;margin:6px 0'><input type='checkbox' name='subjects' value='Geography' style='width:auto;margin-right:8px'>Geography</label><label style='display:block;margin:6px 0'><input type='checkbox' name='subjects' value='History' style='width:auto;margin-right:8px'>History</label><label style='display:block;margin:6px 0'><input type='checkbox' name='subjects' value='Biology' style='width:auto;margin-right:8px'>Biology</label><label style='display:block;margin:6px 0'><input type='checkbox' name='subjects' value='Chemistry' style='width:auto;margin-right:8px'>Chemistry</label><label style='display:block;margin:6px 0'><input type='checkbox' name='subjects' value='Physics' style='width:auto;margin-right:8px'>Physics</label><label style='display:block;margin:6px 0'><input type='checkbox' name='subjects' value='Economics' style='width:auto;margin-right:8px'>Economics</label><label style='display:block;margin:6px 0'><input type='checkbox' name='subjects' value='Accounting' style='width:auto;margin-right:8px'>Accounting</label></div>"
+    "<div class='form-group'><label>Subjects you want to study * (choose one or more)</label>"
+    + "".join(
+        "<label style='display:block;margin:6px 0'>"
+        f"<input type='checkbox' name='subjects' value='{s}' style='width:auto;margin-right:8px'>{s}"
+        "</label>"
+        for s in SUBJECTS_ALLOWED
+    )
+    + "</div>"
     "<div id='parent-notice' style='display:none;background:#fff7e6;border:1px solid #f5c26b;border-radius:14px;padding:12px 14px;margin:12px 0;color:#7a4b00'>👨\u200d👩\u200d👧 <b>Parent/Guardian Notice</b><br>For Grades 1–4, a parent or responsible adult should be present during the lesson to help the pupil follow instructions, read questions when necessary, and support the learning process.</div>"
     "<script>(function(){var g=document.querySelector('select[name=grade_form]'),n=document.getElementById('parent-notice');function u(){n.style.display=/^Grade [1-4]$/.test(g.value)?'block':'none'}g.addEventListener('change',u);u()})()</script>"
     "<div class='form-group'><label>Password * (min 6 chars)</label>"
@@ -497,7 +530,7 @@ def register_auth_routes(app):
         return redirect(url_for("landing"))
 
 
-SUBJECTS_ALLOWED = ['Maths', 'English', 'Science', 'Social Studies', 'Geography', 'History', 'Biology', 'Chemistry', 'Physics', 'Economics', 'Accounting']
+
 
 def save_onboarding(student_number, age, subjects):
     """Save age and ALL chosen subjects for a newly registered pupil."""

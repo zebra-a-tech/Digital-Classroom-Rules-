@@ -2267,23 +2267,39 @@ def tutor_ask(sid):
     from subject_guard import apply_guard
     subject, _guard_note = apply_guard(sid, subject, message)
     _guard_html = ('<p><i>' + esc(_guard_note) + '</i></p>') if _guard_note else ''
-    # Use the existing tutor engine if available.
+    # Use the full tutoring chain via learning_bridge.
+    # Order: brain → intelligence → bridge.ask_tutor → plain fallback.
+    response = ""
     try:
         from tutor.brain import tutor_reply
-        response = tutor_reply(sid,message)
-    except Exception:
+        response = tutor_reply(sid, message, subject=subject)
+    except Exception as _e1:
+        print("tutor_ask: brain failed:", _e1)
+
+    if not response:
+        try:
+            from learning_bridge import ask_tutor as _bridge_ask
+            r = _bridge_ask(sid, message, subject=subject)
+            response = r.get("response") or ""
+            note = r.get("note") or ""
+            if note:
+                response = note + "<br><br>" + response
+        except Exception as _e2:
+            print("tutor_ask: bridge failed:", _e2)
+
+    if not response:
         try:
             from tutor.intelligence import teach
-            response = teach(sid,subject,message)
-        except Exception:
-            response = f"""
-            <b>Your Tutor:</b><br><br>
-            Good question! Let's work through <b>{esc(subject)}</b>
-            step by step.<br><br>
-            You asked:<br>
-            <b>{esc(message)}</b><br><br>
-            Tell me which part you find difficult and we will practise it together.
-            """
+            response = teach(sid, subject, message) or ""
+        except Exception as _e3:
+            print("tutor_ask: intelligence failed:", _e3)
+
+    if not response:
+        response = (
+            f"<b>Your Tutor:</b><br><br>"
+            f"I couldn't find a specific answer for that just now. "
+            f"Try rephrasing, or ask about a topic from your {esc(subject)} curriculum."
+        )
 
     content = f"""
 <div class="hero">
