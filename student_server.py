@@ -51,8 +51,10 @@ register_student_learning(app)
 
 
 
-DB = os.environ.get("DB_PATH", "digital_classroom.db")
-os.makedirs(os.path.dirname(DB), exist_ok=True) if os.path.dirname(DB) else None
+DB = _db_os.environ.get("DB_PATH", "digital_classroom.db")
+_db_parent = _db_os.path.dirname(DB)
+if _db_parent:
+    _db_os.makedirs(_db_parent, exist_ok=True)
 
 
 def student(sid):
@@ -3014,6 +3016,56 @@ try:
     print('Msasa pages registered: /student/<sid>/v2')
 except Exception as _msasa_err:
     print('msasa registration FAILED:', _msasa_err)
+
+
+
+# ============================================================
+# TEMPORARY: one-shot DB upload endpoint for Railway seeding
+# ============================================================
+# Disabled unless SEED_UPLOAD_TOKEN is set in the environment.
+# Accepts POST /admin/seed-db with the raw .db file as the body.
+# After seeding, remove this block and redeploy.
+# ============================================================
+@app.route("/admin/seed-db", methods=["POST"])
+def _admin_seed_db():
+    import os as _os
+    expected = _os.environ.get("SEED_UPLOAD_TOKEN", "").strip()
+    if not expected:
+        return "endpoint disabled (SEED_UPLOAD_TOKEN not set)", 404
+
+    # Token can be passed as ?token=... or X-Seed-Token header
+    from flask import request as _rq
+    provided = (_rq.args.get("token") or
+                _rq.headers.get("X-Seed-Token") or "").strip()
+    if provided != expected:
+        return "forbidden", 403
+
+    # Where should we write?
+    try:
+        target = _os.environ.get("DB_PATH", "").strip() or "digital_classroom.db"
+        # Ensure parent dir
+        parent = _os.path.dirname(target)
+        if parent:
+            _os.makedirs(parent, exist_ok=True)
+
+        data = _rq.get_data(cache=False, as_text=False)
+        if not data or len(data) < 1024:
+            return f"payload too small ({len(data)} bytes)", 400
+
+        # Sanity: does it look like a SQLite file?
+        if not data.startswith(b"SQLite format 3\x00"):
+            return "not a sqlite database", 400
+
+        # Write to a temp file first, then atomically swap in place
+        tmp = target + ".seed-tmp"
+        with open(tmp, "wb") as fh:
+            fh.write(data)
+        _os.replace(tmp, target)
+
+        return f"seeded {len(data):,} bytes to {target}", 200
+    except Exception as e:
+        return f"seed failed: {type(e).__name__}: {e}", 500
+
 
 if __name__ == "__main__":
     import os as _railway_os
