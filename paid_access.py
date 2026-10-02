@@ -2,8 +2,8 @@ import sqlite3
 from datetime import datetime, timedelta
 from flask import request, redirect, url_for, render_template_string
 
-DB = "digital_classroom.db"
-
+import os as _os_for_db
+DB = _os_for_db.environ.get("DB_PATH", "digital_classroom.db")
 PRICE = 1.00
 
 ECOCASH_NAME = "Lucky Munyanyiwa"

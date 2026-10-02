@@ -6,6 +6,19 @@ from datetime import datetime, timedelta
 
 app = Flask(__name__)
 
+# ------------------------------------------------------------
+# DB bootstrap — creates the schema and seeds curriculum if the
+# database file is missing (fresh Railway container, etc).
+# Reads DB_PATH from environment if set.
+# ------------------------------------------------------------
+try:
+    import db_bootstrap
+    DB_PATH_RESOLVED = db_bootstrap.ensure_db()
+except Exception as _bs_err:
+    print('BOOTSTRAP: skipped due to error:', _bs_err)
+    DB_PATH_RESOLVED = None
+
+
 
 # Digital Classroom Rules assignment system
 from assignment_system import register_assignment_system
@@ -38,7 +51,8 @@ register_student_learning(app)
 
 
 
-DB = "digital_classroom.db"
+DB = os.environ.get("DB_PATH", "digital_classroom.db")
+os.makedirs(os.path.dirname(DB), exist_ok=True) if os.path.dirname(DB) else None
 
 
 def student(sid):
