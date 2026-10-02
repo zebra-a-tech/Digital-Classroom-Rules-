@@ -23,9 +23,7 @@ from flask import render_template, abort, redirect, url_for, session
 
 
 _HERE = os.path.dirname(os.path.abspath(__file__))
-DB_PATH = os.path.join(_HERE, "digital_classroom.db")
-
-
+DB_PATH = __import__("os").environ.get("DB_PATH", "digital_classroom.db")
 def _ro():
     con = sqlite3.connect(f"file:{DB_PATH}?mode=ro", uri=True, timeout=10)
     con.row_factory = sqlite3.Row

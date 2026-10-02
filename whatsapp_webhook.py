@@ -19,8 +19,7 @@ except Exception as _bridge_err:
     _HAS_BRIDGE = False
     print('whatsapp: learning_bridge unavailable:', _bridge_err)
 
-DB = "digital_classroom.db"
-
+DB = __import__("os").environ.get("DB_PATH", "digital_classroom.db")
 WHATSAPP_TOKEN = os.environ.get("WHATSAPP_TOKEN", "")
 WHATSAPP_PHONE_ID = os.environ.get("WHATSAPP_PHONE_ID", "")
 VERIFY_TOKEN = os.environ.get("WHATSAPP_VERIFY_TOKEN", "digital_classroom_verify_2026")

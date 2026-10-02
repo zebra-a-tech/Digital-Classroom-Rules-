@@ -1,7 +1,6 @@
 import sqlite3
 
-DATABASE = "digital_classroom.db"
-
+DATABASE = __import__("os").environ.get("DB_PATH", "digital_classroom.db")
 def connect():
     return sqlite3.connect(DATABASE)
 

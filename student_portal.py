@@ -1,8 +1,7 @@
 import sqlite3
 from flask import render_template_string, redirect, url_for, request
 
-DB = "digital_classroom.db"
-
+DB = __import__("os").environ.get("DB_PATH", "digital_classroom.db")
 SUBJECTS = [
     "Maths",
     "English",

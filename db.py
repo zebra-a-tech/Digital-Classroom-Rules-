@@ -29,9 +29,7 @@ def _ensure_parent(path):
 
 
 _HERE = os.path.dirname(os.path.abspath(__file__))
-DB_PATH = os.path.join(_HERE, "digital_classroom.db")
-
-
+DB_PATH = __import__("os").environ.get("DB_PATH", "digital_classroom.db")
 # ---------- connection ----------
 def connect(readonly=False):
     if readonly:

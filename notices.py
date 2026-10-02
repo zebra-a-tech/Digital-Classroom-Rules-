@@ -1,5 +1,5 @@
 import re, sqlite3, os
-DB = os.path.join(os.path.dirname(os.path.abspath(__file__)), "digital_classroom.db")
+DB = __import__("os").environ.get("DB_PATH", "digital_classroom.db")
 PAT = re.compile(r"^/student/(\d+)/(home|trial|trial-lesson|paid|paid-lessons|centre)/?$")
 LESSON_PAGES = {"trial", "trial-lesson", "paid", "paid-lessons", "centre", "home"}
 

@@ -37,9 +37,7 @@ import datetime
 
 # ---- resolve DB relative to this file (cwd-independent) ----
 _HERE = os.path.dirname(os.path.abspath(__file__))
-DB_PATH = os.path.join(_HERE, "digital_classroom.db")
-
-
+DB_PATH = __import__("os").environ.get("DB_PATH", "digital_classroom.db")
 # ============================================================
 # low-level DB helpers (local, tiny — no circular import)
 # ============================================================

@@ -11,8 +11,7 @@ from datetime import datetime
 RESTRICTED_TRIAL_TOPICS_PER_SUBJECT = 3
 
 
-DB = "digital_classroom.db"
-
+DB = __import__("os").environ.get("DB_PATH", "digital_classroom.db")
 SUBJECTS = [
     "Maths",
     "English",

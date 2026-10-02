@@ -8,8 +8,7 @@ directly. No Meta credentials, no network.
 import whatsapp_webhook as wh
 import sqlite3
 
-DB = "digital_classroom.db"
-
+DB = __import__("os").environ.get("DB_PATH", "digital_classroom.db")
 def ensure_test_link(phone, student_id):
     con = sqlite3.connect(DB)
     exists = con.execute(

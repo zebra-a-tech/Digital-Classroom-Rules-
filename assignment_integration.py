@@ -18,9 +18,7 @@ import sqlite3
 from datetime import datetime
 
 ROOT = Path(__file__).resolve().parent
-DB = ROOT / "digital_classroom.db"
-
-
+DB = __import__("os").environ.get("DB_PATH", "digital_classroom.db")
 def db():
     conn = sqlite3.connect(DB)
     conn.row_factory = sqlite3.Row

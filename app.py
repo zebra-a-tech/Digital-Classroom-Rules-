@@ -10,8 +10,7 @@ app = Flask(__name__)
 register_marking_flow(app)
 
 
-DB = "digital_classroom.db"
-
+DB = __import__("os").environ.get("DB_PATH", "digital_classroom.db")
 TUTORS = [
     "Tariro", "Tendai", "Nyasha", "Tatenda", "Rudo",
     "Blessing", "Brian", "Grace", "Michael", "Sarah"

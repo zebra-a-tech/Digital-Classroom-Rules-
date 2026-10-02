@@ -4,8 +4,7 @@ import os
 import inspect
 from datetime import datetime, timedelta
 
-DB = "digital_classroom.db"
-
+DB = __import__("os").environ.get("DB_PATH", "digital_classroom.db")
 SUBJECTS = [
     "Maths", "English", "Science", "Social Studies", "Geography",
     "History", "Biology", "Chemistry", "Physics", "Economics", "Accounting"

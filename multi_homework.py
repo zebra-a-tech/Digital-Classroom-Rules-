@@ -5,9 +5,7 @@ from flask import request, redirect, url_for, render_template_string
 from tutor.intelligence import detect_topic, check_answer
 from tutor.adaptive import record_result, get_mastery
 
-DB = "digital_classroom.db"
-
-
+DB = __import__("os").environ.get("DB_PATH", "digital_classroom.db")
 def db():
     conn = sqlite3.connect(DB)
     conn.row_factory = sqlite3.Row

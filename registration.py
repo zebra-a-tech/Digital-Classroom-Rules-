@@ -1,8 +1,7 @@
 import sqlite3
 import random
 
-DATABASE = "digital_classroom.db"
-
+DATABASE = __import__("os").environ.get("DB_PATH", "digital_classroom.db")
 TUTORS = [
     "Tariro",
     "Tendai",

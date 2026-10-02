@@ -8,8 +8,7 @@ from datetime import datetime
 from functools import wraps
 from flask import session, redirect, url_for, request, render_template_string
 
-DB = "digital_classroom.db"
-
+DB = __import__("os").environ.get("DB_PATH", "digital_classroom.db")
 TUTOR_NAMES = [
     "Tendai", "Rudo", "Bhekane", "Thandiwe", "Tapiwa", "Tariro",
     "Ruvarashe", "Nyasha", "Chiedza", "Rutendo", "Tanaka", "Makanaka",

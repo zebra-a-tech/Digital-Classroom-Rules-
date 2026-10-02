@@ -3,8 +3,7 @@ import sqlite3
 import random
 from datetime import datetime
 
-DB = "digital_classroom.db"
-
+DB = __import__("os").environ.get("DB_PATH", "digital_classroom.db")
 SUBJECT_TOPICS = {
     "Maths": [
         "Whole Numbers", "Fractions", "Decimals", "Percentages",
@@ -1052,7 +1051,7 @@ def _load_sqlite_curriculum():
     """Load all lessons from the 'curriculum' SQLite table and merge into CURRICULUM."""
     import sqlite3
     try:
-        conn = sqlite3.connect("digital_classroom.db")
+        conn = sqlite3.connect(__import__("os").environ.get("DB_PATH", "digital_classroom.db"))
         conn.row_factory = sqlite3.Row
         rows = conn.execute('''
             SELECT grade_form, subject, topic, lesson_goal, content,

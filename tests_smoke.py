@@ -13,7 +13,7 @@ Usage:
 import sys, os, sqlite3, json, datetime, urllib.request, urllib.error
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-DB = os.path.join(HERE, "digital_classroom.db")
+DB = __import__("os").environ.get("DB_PATH", "digital_classroom.db")
 BASE = "http://127.0.0.1:5001"
 
 DO_HTTP = "--http" in sys.argv

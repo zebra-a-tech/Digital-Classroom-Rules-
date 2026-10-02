@@ -3,8 +3,7 @@ import sqlite3
 from datetime import datetime, timedelta
 import re
 
-DB = "digital_classroom.db"
-
+DB = __import__("os").environ.get("DB_PATH", "digital_classroom.db")
 SUBJECTS = [
     "Maths", "English", "Science", "Social Studies",
     "Geography", "History", "Biology", "Chemistry",

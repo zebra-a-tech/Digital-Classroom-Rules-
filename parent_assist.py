@@ -15,9 +15,7 @@ import sqlite3
 from datetime import datetime
 from flask import request, render_template_string, redirect
 
-DB = "digital_classroom.db"
-
-
+DB = __import__("os").environ.get("DB_PATH", "digital_classroom.db")
 def get_parent_welcome_message(student_name, grade, subject, topic):
     """Return the warm welcome message for the parent."""
     return f"""

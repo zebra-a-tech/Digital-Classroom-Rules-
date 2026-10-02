@@ -4,9 +4,7 @@ import sqlite3
 from datetime import datetime
 from flask import request, render_template_string, redirect
 
-DB = "digital_classroom.db"
-
-
+DB = __import__("os").environ.get("DB_PATH", "digital_classroom.db")
 def _db():
     conn = sqlite3.connect(DB)
     conn.row_factory = sqlite3.Row

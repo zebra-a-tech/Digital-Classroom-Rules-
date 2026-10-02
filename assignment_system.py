@@ -25,8 +25,7 @@ from flask import (
 )
 
 ROOT = Path(__file__).resolve().parent
-DB = ROOT / "digital_classroom.db"
-
+DB = __import__("os").environ.get("DB_PATH", "digital_classroom.db")
 UPLOAD_ROOT = ROOT / "student_work_uploads"
 UPLOAD_ROOT.mkdir(parents=True, exist_ok=True)
 

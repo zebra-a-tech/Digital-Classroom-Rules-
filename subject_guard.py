@@ -1,5 +1,5 @@
 import re, sqlite3, os
-DB = os.path.join(os.path.dirname(os.path.abspath(__file__)), "digital_classroom.db")
+DB = __import__("os").environ.get("DB_PATH", "digital_classroom.db")
 KW = {
  "Maths": r"\bsolve\b|equation|fraction|multipl|divid|algebra|\barea\b|perimeter|\bsum of\b|\bfactor|percent|decimal|geometry|\bangle",
  "English": r"grammar|\bnoun\b|\bverb\b|adjective|adverb|comprehension|synonym|antonym|\bessay\b|spelling|punctuation|\btense\b",
