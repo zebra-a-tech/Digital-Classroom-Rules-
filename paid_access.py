@@ -3,6 +3,21 @@ from datetime import datetime, timedelta
 from flask import request, redirect, url_for, render_template_string
 
 import os as _os_for_db
+
+
+def _ensure_parent(path):
+    """Create the parent directory of `path` if it doesn't exist.
+    Safe to call repeatedly. Silently ignores permission errors on
+    non-writable parents (sqlite3.connect will surface the real error)."""
+    import os as _os
+    try:
+        p = path
+        d = _os.path.dirname(p)
+        if d and not _os.path.isdir(d):
+            _os.makedirs(d, exist_ok=True)
+    except Exception:
+        pass
+
 DB = _os_for_db.environ.get("DB_PATH", "digital_classroom.db")
 PRICE = 1.00
 
@@ -18,6 +33,7 @@ MUKURU_NUMBER = "+263 719 809 683"
 # ============================================================
 
 def db():
+    _ensure_parent(DB)
     conn = sqlite3.connect(DB)
     conn.row_factory = sqlite3.Row
     return conn

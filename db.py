@@ -13,6 +13,21 @@ import os
 import sqlite3
 import datetime
 
+
+def _ensure_parent(path):
+    """Create the parent directory of `path` if it doesn't exist.
+    Safe to call repeatedly. Silently ignores permission errors on
+    non-writable parents (sqlite3.connect will surface the real error)."""
+    import os as _os
+    try:
+        p = path
+        d = _os.path.dirname(p)
+        if d and not _os.path.isdir(d):
+            _os.makedirs(d, exist_ok=True)
+    except Exception:
+        pass
+
+
 _HERE = os.path.dirname(os.path.abspath(__file__))
 DB_PATH = os.path.join(_HERE, "digital_classroom.db")
 
