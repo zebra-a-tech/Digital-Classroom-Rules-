@@ -1,18 +1,71 @@
+# Python
 __pycache__/
 *.pyc
 *.pyo
-*.log
 .env
 .venv/
 venv/
 node_modules/
 .DS_Store
+
+# Tunnels
 cloudflared
 ngrok
+
+# Generic backup suffixes
 *.bak
 *_backup.py
 *_before_*.py
+*_BEFORE_*
+*.DCR_B*
+*.DCR_FIX_*
+
+# Named old files (specific to this project)
+student_server_before_*.py
+student_server_backup_*.py
+student_server.OLD_*
+student_server_OLD_*
 student_server_before_*.py
 student_learning_before_*.py
 student_playbook_before_*.py
-.git_old/
+auth.OLD_*
+auth_before_*.py
+auth_backup_*
+auth_BACKUP_*
+paid_access_before_*.py
+assignment_system_BEFORE_*.py
+assignment_integration_BEFORE_*.py
+design_BEFORE_*.py
+work_marking_BEFORE_*.py
+subject_guard_BEFORE_*.py
+student_academy_BEFORE_*.py
+
+# Databases — NEVER push the live DB or its snapshots
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite3
+
+# Logs and pid files
+*.log
+*.pid
+server.log
+msasa_test.log
+dbg*.log
+flow.html
+select_result.html
+cookies.txt
+t_home.html
+
+# Inspection artifacts
+INSPECT_REPORT.txt
+inspection_report.txt
+_inspect.py
+_debug_msasa.py
+
+# Migrations audit logs (safe to keep if you want; comment out if so)
+# migrations/*.json
+
+# Termux
+.termux/

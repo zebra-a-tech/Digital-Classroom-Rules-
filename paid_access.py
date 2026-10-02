@@ -1129,25 +1129,34 @@ def register_paid_access(app):
                     FROM student_sessions
                     WHERE id=?
                       AND student_id=?
-                      AND session_type='trial'
+                    LIMIT 1
                 """, (trial_session_id, student_id)).fetchone()
                 conn.close()
+
+                print(f"GATE SESSION CHECK: session_id={trial_session_id}, student={student_id}, found={bool(trial_row)}", flush=True)
 
                 if trial_row:
                     from datetime import datetime
 
-                    # A paused unfinished trial remains accessible.
+                    # Paused = allow access
                     if trial_row["paused"]:
+                        print(f"GATE: allowing paused session", flush=True)
                         return None
 
-                    expires = datetime.fromisoformat(
-                        trial_row["expires_at"]
-                    )
+                    # Check expiry
+                    try:
+                        expires = datetime.fromisoformat(trial_row["expires_at"])
+                        if datetime.now() < expires:
+                            print(f"GATE: allowing unexpired session (expires {expires})", flush=True)
+                            return None
+                        else:
+                            print(f"GATE: session EXPIRED (was {expires})", flush=True)
+                    except Exception as ex:
+                        print(f"GATE: expiry parse error: {ex}", flush=True)
+                        return None  # Allow if we can't parse
 
-                    if datetime.now() < expires:
-                        return None
-
-            except Exception:
+            except Exception as ex:
+                print(f"GATE: session lookup error: {ex}", flush=True)
                 pass
 
         # ----------------------------------------------------
@@ -1183,7 +1192,7 @@ def register_paid_access(app):
                     SELECT id, paused, expires_at
                     FROM student_sessions
                     WHERE student_id=?
-                      AND session_type='trial'
+                      -- session_type filter removed
                       AND completed=0
                     ORDER BY id DESC
                     LIMIT 1

@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#3B2A1A">
+  <title>{% block title %}Digital Classroom Rules{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='msasa.css') }}">
+  {% block head %}{% endblock %}
+</head>
+<body class="ms-body">
+  <div class="ms-shell">
+
+    <header class="ms-header">
+      <a class="ms-header__brand" href="{{ safe_url('home', sid=sid) if sid is defined else '/' }}">
+        <span class="ms-header__mark">DCR</span>
+        <span>Digital Classroom</span>
+      </a>
+      <nav class="ms-header__actions">
+        {% if sid is defined %}
+          <a href="{{ safe_url('progress', sid=sid) }}">Progress</a>
+          <a href="{{ safe_url('logout') }}">Logout</a>
+        {% else %}
+          <a href="{{ safe_url('login') }}">Login</a>
+        {% endif %}
+      </nav>
+    </header>
+
+    {% if sid is defined %}
+    <nav class="ms-nav">
+      <a href="{{ safe_url('home', sid=sid) }}">Home</a>
+      <a href="{{ safe_url('centre', sid=sid) }}">Learning Centre</a>
+      <a href="{{ safe_url('progress', sid=sid) }}">Progress</a>
+      <a href="{{ safe_url('profile', sid=sid) }}">Profile</a>
+    </nav>
+    {% endif %}
+
+    <main class="ms-main">
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          {% for cat, msg in messages %}
+            <div class="ms-banner {% if cat == 'error' %}ms-banner--err{% elif cat == 'ok' %}ms-banner--ok{% endif %}" role="status">
+              {{ msg }}
+            </div>
+          {% endfor %}
+        {% endif %}
+      {% endwith %}
+
+      {% block content %}{% endblock %}
+    </main>
+
+    <footer class="ms-footer">
+      Digital Classroom Rules · Zimbabwe · <span class="ms-mono">+263 719 809 683</span>
+    </footer>
+  </div>
+
+  <script src="{{ url_for('static', filename='msasa.js') }}"></script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

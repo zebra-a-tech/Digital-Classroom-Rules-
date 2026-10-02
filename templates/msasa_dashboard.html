@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+{% block title %}{{ student.name }} · Dashboard{% endblock %}
+
+{% block content %}
+
+<div class="ms-card ms-card--sun" style="background:linear-gradient(135deg,#3B2A1A,#5a3f24);color:#FAF6EF;border:0;">
+  <div class="ms-small" style="opacity:.75;letter-spacing:.08em;text-transform:uppercase;">Welcome back</div>
+  <div class="ms-h1" style="color:#FAF6EF;margin-top:4px;">{{ student.name }}</div>
+  <div class="ms-small" style="opacity:.85;">
+    {{ student.student_number or '' }} ·
+    {{ student.grade_form or '—' }} ·
+    Tutor: {{ student.tutor or '—' }}
+  </div>
+  {% if student.school %}<div class="ms-small" style="opacity:.7;">{{ student.school }}</div>{% endif %}
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px;">
+  <div class="ms-card ms-card--{{ 'leaf' if trial.active else ('clay' if trial.used else 'sun') }}">
+    <div class="ms-h3">Free Trial</div>
+    {% if trial.active %}
+      <div class="ms-chip ms-chip--leaf">Active</div>
+      {% set expires_at = trial.expires_at %}{% set paused = False %}{% set label = 'Trial remaining' %}
+      {% include "_partials/timer.html" %}
+    {% elif trial.used %}
+      <div class="ms-chip ms-chip--clay">Used</div>
+      <div class="ms-small ms-muted" style="margin-top:6px;">Your 30-minute free lesson has been used.</div>
+    {% else %}
+      <div class="ms-chip ms-chip--sun">Available</div>
+      <div class="ms-small ms-muted" style="margin-top:6px;">30 minutes, free.</div>
+      <a class="ms-btn ms-btn--primary ms-btn--block" style="margin-top:10px;"
+         href="/student/{{ sid }}/trial">Start free trial</a>
+    {% endif %}
+  </div>
+
+  <div class="ms-card ms-card--{{ 'leaf' if paid.active else 'sun' }}">
+    <div class="ms-h3">Paid Lesson</div>
+    {% if paid.active %}
+      <div class="ms-chip ms-chip--leaf">{{ 'Paused' if paid.paused else 'Active' }}</div>
+      {% set expires_at = paid.expires_at %}{% set paused = paid.paused %}{% set label = 'Time remaining' %}
+      {% include "_partials/timer.html" %}
+    {% else %}
+      <div class="ms-chip ms-chip--sun">$1 / hour</div>
+      <div class="ms-small ms-muted" style="margin-top:6px;">Unlock a 1-hour lesson.</div>
+      <a class="ms-btn ms-btn--primary ms-btn--block" style="margin-top:10px;"
+         href="/student/{{ sid }}/paid">Request paid lesson</a>
+    {% endif %}
+  </div>
+</div>
+
+<div class="ms-h2">Your subjects</div>
+{% if subjects %}
+<div class="ms-subject-grid">
+  {% for subj in subjects %}
+    <a class="ms-subject {% if subj == current_subject %}ms-subject--active{% endif %}"
+       href="/student/{{ sid }}/select/{{ subj }}">
+      <div class="ms-subject__icon">{{ subj[:2]|upper }}</div>
+      <div class="ms-subject__name">{{ subj }}</div>
+      <div class="ms-subject__meta">
+        {% if subj == current_subject %}Currently studying{% else %}Tap to study{% endif %}
+      </div>
+    </a>
+  {% endfor %}
+</div>
+{% else %}
+  {% set title = "No subjects yet" %}{% set hint = "Add a subject to begin learning." %}{% set icon = "📚" %}
+  {% include "_partials/empty.html" %}
+  <a class="ms-btn ms-btn--primary ms-btn--block" style="margin-top:12px;"
+     href="/student/{{ sid }}/home">Choose subjects</a>
+{% endif %}
+
+<div class="ms-h2">Recent activity</div>
+{% if recent %}
+  <div class="ms-card">
+    {% for r in recent %}
+      <div class="ms-sheet__row">
+        <div class="ms-sheet__label">
+          <b style="color:var(--ms-ink);">{{ r.subject }}</b> · {{ r.topic }}
+          <div class="ms-small ms-muted">{{ r.correct }}/{{ r.attempts }} correct</div>
+        </div>
+        <div class="ms-sheet__value">
+          <span class="ms-chip {% if r.mastery >= 80 %}ms-chip--leaf{% elif r.mastery >= 60 %}ms-chip--sun{% else %}ms-chip--clay{% endif %}">
+            {{ r.mastery }}%
+          </span>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+{% else %}
+  {% set title = "No activity yet" %}{% set hint = "Your first lesson will appear here." %}{% set icon = "🌱" %}
+  {% include "_partials/empty.html" %}
+{% endif %}
+
+{% if weakest %}
+<div class="ms-h2">Focus this week</div>
+<div class="ms-card ms-card--clay" style="display:flex;align-items:center;gap:16px;">
+  <div>{% set pct = weakest.mastery %}{% include "_partials/ring.html" %}</div>
+  <div style="flex:1;">
+    <div class="ms-small ms-muted">{{ weakest.subject }}</div>
+    <div style="font-weight:600;font-size:16px;">{{ weakest.topic }}</div>
+    <div class="ms-small ms-muted">{{ weakest.correct }}/{{ weakest.attempts }} correct · last studied {{ weakest.last_activity or '—' }}</div>
+    <a class="ms-btn ms-btn--primary" style="margin-top:10px;" href="/student/{{ sid }}/centre">Study this topic</a>
+  </div>
+</div>
+{% endif %}
+
+<div class="ms-h2">Weekly report</div>
+<div class="ms-card ms-card--leaf" style="display:flex;align-items:center;justify-content:space-between;">
+  <div>
+    <div style="font-weight:600;">{{ report.week.label if report and report.week else '—' }}</div>
+    <div class="ms-small ms-muted">
+      {% if report %}
+        {{ report.questions_correct }}/{{ report.questions_attempted }} correct
+        {% if report.accuracy is not none %}· {{ report.accuracy }}%{% endif %}
+      {% else %}Report unavailable{% endif %}
+    </div>
+  </div>
+  <a class="ms-btn" href="/student/{{ sid }}/v2/report">Open</a>
+</div>
+
+{% endblock %}

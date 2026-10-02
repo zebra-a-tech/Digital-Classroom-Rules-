@@ -427,12 +427,80 @@ def answer_is_correct(subject, topic, answer):
 
     return clean(answer) in [clean(x) for x in expected]
 
+def get_student_selected_subject(sid, requested_subject=None):
+    """
+    Resolve the student's subject without silently forcing Maths.
+
+    Priority:
+      1. Explicit subject requested by the student/page
+      2. current_subject stored on the student profile
+      3. primary subject stored on the student profile
+      4. first active subject in student_subjects
+      5. None
+
+    Never silently changes another subject to Maths.
+    """
+    requested = (requested_subject or "").strip()
+
+    if requested:
+        return requested
+
+    s = student(sid)
+
+    if s:
+        try:
+            current = (s["current_subject"] or "").strip()
+        except (KeyError, IndexError):
+            current = ""
+
+        if current:
+            return current
+
+        try:
+            primary = (s["subject"] or "").strip()
+        except (KeyError, IndexError):
+            primary = ""
+
+        if primary:
+            return primary
+
+    try:
+        c = conn()
+        row = c.execute(
+            """
+            SELECT subject
+            FROM student_subjects
+            WHERE student_id=? AND active=1
+            ORDER BY id
+            LIMIT 1
+            """,
+            (sid,)
+        ).fetchone()
+        c.close()
+
+        if row and row["subject"]:
+            return row["subject"].strip()
+
+    except Exception:
+        pass
+
+    return None
+
+
 def tutor_response(sid, message):
     s = student(sid)
     if not s:
         return ("General", "", "Student profile not found.")
 
-    current = s["subject"] or "Maths"
+    current = get_student_selected_subject(sid)
+
+    if not current:
+        return (
+            "General",
+            "",
+            "I don't have your current subject yet. "
+            "Please choose the subject you want to study."
+        )
     subject, topic = detect_topic(message, current)
 
     # If learner mentions a subject without topic
@@ -670,8 +738,42 @@ def register_student_academy(app):
 
     @app.route("/student/<int:sid>/test")
     def start_test(sid):
-        subject = request.args.get("subject", "Maths")
-        questions = TESTS.get(subject, TESTS["Maths"])
+        subject = get_student_selected_subject(
+            sid,
+            request.args.get("subject")
+        )
+
+        if not subject:
+            return render_page(
+                "Choose Subject",
+                """
+                <div class="header">
+                <h1>📚 Choose a Subject</h1>
+                <p>Please select the subject you want to test.</p>
+                </div>
+                """
+            )
+
+        questions = TESTS.get(subject)
+
+        if not questions:
+            return render_page(
+                f"{subject} Test",
+                f"""
+                <div class="header">
+                <h1>📝 {subject} Test</h1>
+                <p>
+                There is currently no test bank loaded for {subject}.
+                Your learning curriculum is still available.
+                </p>
+                </div>
+
+                <a class="btn"
+                   href="/student/{sid}/learning">
+                   ← Learning Centre
+                </a>
+                """
+            )
 
         return render_page(
             f"{subject} Test",
@@ -702,8 +804,34 @@ def register_student_academy(app):
 
     @app.route("/student/<int:sid>/submit-test", methods=["POST"])
     def submit_test(sid):
-        subject = request.form.get("subject")
-        questions = TESTS.get(subject, TESTS["Maths"])
+        subject = get_student_selected_subject(
+            sid,
+            request.form.get("subject")
+        )
+
+        if not subject:
+            return render_page(
+                "Test Error",
+                """
+                <div class="header">
+                <h1>⚠️ Subject Required</h1>
+                <p>Please choose a subject before submitting the test.</p>
+                </div>
+                """
+            )
+
+        questions = TESTS.get(subject)
+
+        if not questions:
+            return render_page(
+                f"{subject} Test",
+                f"""
+                <div class="header">
+                <h1>📝 {subject} Test</h1>
+                <p>No test bank is currently loaded for {subject}.</p>
+                </div>
+                """
+            )
 
         score = 0
 
@@ -787,8 +915,42 @@ def register_student_academy(app):
 
     @app.route("/student/<int:sid>/exam")
     def exam(sid):
-        subject = request.args.get("subject", "Maths")
-        questions = TESTS.get(subject, TESTS["Maths"])
+        subject = get_student_selected_subject(
+            sid,
+            request.args.get("subject")
+        )
+
+        if not subject:
+            return render_page(
+                "Choose Subject",
+                """
+                <div class="header">
+                <h1>📚 Choose a Subject</h1>
+                <p>Please select the subject you want to examine.</p>
+                </div>
+                """
+            )
+
+        questions = TESTS.get(subject)
+
+        if not questions:
+            return render_page(
+                f"{subject} Examination",
+                f"""
+                <div class="header">
+                <h1>🎓 {subject} Mock Examination</h1>
+                <p>
+                No examination question bank is currently loaded
+                for {subject}.
+                </p>
+                </div>
+
+                <a class="btn"
+                   href="/student/{sid}/learning">
+                   ← Learning Centre
+                </a>
+                """
+            )
 
         return render_page(
             "Mock Examination",
@@ -819,8 +981,35 @@ def register_student_academy(app):
 
     @app.route("/student/<int:sid>/submit-exam", methods=["POST"])
     def submit_exam(sid):
-        subject = request.form.get("subject")
-        questions = TESTS.get(subject, TESTS["Maths"])
+        subject = get_student_selected_subject(
+            sid,
+            request.form.get("subject")
+        )
+
+        if not subject:
+            return render_page(
+                "Examination Error",
+                """
+                <div class="header">
+                <h1>⚠️ Subject Required</h1>
+                <p>Please choose a subject before submitting.</p>
+                </div>
+                """
+            )
+
+        questions = TESTS.get(subject)
+
+        if not questions:
+            return render_page(
+                f"{subject} Examination",
+                f"""
+                <div class="header">
+                <h1>🎓 {subject} Mock Examination</h1>
+                <p>No examination question bank is currently loaded
+                for {subject}.</p>
+                </div>
+                """
+            )
 
         score = 0
 
@@ -970,7 +1159,24 @@ def register_student_academy(app):
 
     @app.route("/student/<int:sid>/request-paid")
     def request_paid(sid):
-        subject = request.args.get("subject", "Maths")
+        subject = get_student_selected_subject(
+            sid,
+            request.args.get("subject")
+        )
+
+        if not subject:
+            return render_page(
+                "Choose Subject",
+                """
+                <div class="header">
+                <h1>📚 Choose a Subject</h1>
+                <p>
+                Please choose the subject you want for your
+                paid lesson.
+                </p>
+                </div>
+                """
+            )
 
         c = conn()
         existing = c.execute("""

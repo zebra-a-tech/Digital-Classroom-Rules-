@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block title %}Weekly Report · {{ report.student.name if report and report.student else '' }}{% endblock %}
+
+{% block content %}
+
+{% if report and report.error %}
+  <div class="ms-banner ms-banner--err">Report error: {{ report.error }}</div>
+{% else %}
+
+<div class="ms-h1">Weekly Report</div>
+<div class="ms-small ms-muted" style="margin-bottom:12px;">{{ report.week.label }}
+  {% if report.week.fallback_used %} · (showing most recent activity){% endif %}
+</div>
+
+<div class="ms-sheet">
+  <div class="ms-sheet__row"><div class="ms-sheet__label">Student</div><div class="ms-sheet__value">{{ report.student.name }} ({{ report.student.student_number or '—' }})</div></div>
+  <div class="ms-sheet__row"><div class="ms-sheet__label">Grade / Form</div><div class="ms-sheet__value">{{ report.student.grade_form or '—' }}</div></div>
+  <div class="ms-sheet__row"><div class="ms-sheet__label">Tutor</div><div class="ms-sheet__value">{{ report.student.tutor or '—' }}</div></div>
+  <div class="ms-sheet__row"><div class="ms-sheet__label">Subjects studied</div><div class="ms-sheet__value">{{ report.subjects_studied|join(', ') or '—' }}</div></div>
+  <div class="ms-sheet__row"><div class="ms-sheet__label">Learning minutes</div><div class="ms-sheet__value">{{ report.learning_minutes }}</div></div>
+  <div class="ms-sheet__row"><div class="ms-sheet__label">Questions</div><div class="ms-sheet__value">{{ report.questions_correct }}/{{ report.questions_attempted }}{% if report.accuracy is not none %} ({{ report.accuracy }}%){% endif %}</div></div>
+  <div class="ms-sheet__row"><div class="ms-sheet__label">Homework</div><div class="ms-sheet__value">{{ report.homework.completed }}/{{ report.homework.assigned }}{% if report.homework.average is not none %} · avg {{ report.homework.average }}{% endif %}</div></div>
+  <div class="ms-sheet__row"><div class="ms-sheet__label">Assignments</div><div class="ms-sheet__value">{{ report.assignments.completed }}/{{ report.assignments.assigned }}{% if report.assignments.average is not none %} · avg {{ report.assignments.average }}{% endif %}</div></div>
+  <div class="ms-sheet__row"><div class="ms-sheet__label">Tests / Exams</div><div class="ms-sheet__value">{{ report.tests.count }} · {{ report.tests.average if report.tests.average is not none else '—' }} | {{ report.exams.count }} · {{ report.exams.average if report.exams.average is not none else '—' }}</div></div>
+</div>
+
+<div class="ms-h2">Topics mastered</div>
+{% if report.topics_mastered %}
+  {% for t in report.topics_mastered %}
+    <div class="ms-card" style="display:flex;justify-content:space-between;padding:10px 14px;">
+      <div><b>{{ t.subject }}</b> · {{ t.topic }}</div>
+      <div><span class="ms-chip ms-chip--leaf">{{ t.mastery }}%</span></div>
+    </div>
+  {% endfor %}
+{% else %}
+  {% set title = "None yet" %}{% set hint = "Keep practising." %}{% set icon = "🌱" %}
+  {% include "_partials/empty.html" %}
+{% endif %}
+
+<div class="ms-h2">Needs improvement</div>
+{% if report.topics_needing_improvement %}
+  {% for t in report.topics_needing_improvement %}
+    <div class="ms-card" style="display:flex;justify-content:space-between;padding:10px 14px;">
+      <div><b>{{ t.subject }}</b> · {{ t.topic }}</div>
+      <div><span class="ms-chip ms-chip--clay">{{ t.mastery }}%</span></div>
+    </div>
+  {% endfor %}
+{% else %}
+  {% set title = "Nothing flagged" %}{% set hint = "All studied topics are above 70%." %}{% set icon = "✓" %}
+  {% include "_partials/empty.html" %}
+{% endif %}
+
+<div class="ms-h2">Recommendations</div>
+<div class="ms-card">
+  <ul style="margin:0;padding-left:18px;">
+    {% for r in report.tutor_recommendations %}<li>{{ r }}</li>{% endfor %}
+  </ul>
+</div>
+
+<div class="ms-h2">Next week's focus</div>
+<div class="ms-card ms-card--sun">
+  <ul style="margin:0;padding-left:18px;">
+    {% for f in report.next_week_focus %}<li>{{ f }}</li>{% endfor %}
+  </ul>
+</div>
+
+<div style="margin-top:20px;display:flex;gap:8px;">
+  <a class="ms-btn ms-btn--primary" href="/student/{{ sid }}/v2">Back to dashboard</a>
+  <a class="ms-btn" href="javascript:window.print()">Print</a>
+</div>
+
+{% endif %}
+{% endblock %}

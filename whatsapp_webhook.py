@@ -10,6 +10,14 @@ import sqlite3
 import requests
 from datetime import datetime
 from flask import request, jsonify
+# WhatsApp tutoring bridge — same brain as the web tutor.
+try:
+    from learning_bridge import ask_tutor as _ask_tutor
+    _HAS_BRIDGE = True
+except Exception as _bridge_err:
+    _ask_tutor = None
+    _HAS_BRIDGE = False
+    print('whatsapp: learning_bridge unavailable:', _bridge_err)
 
 DB = "digital_classroom.db"
 
@@ -196,6 +204,24 @@ def route_message(phone_number, text):
     elif lower in ("speak", "human"):
         return "👤 Connecting you to *Lucky* (the founder). Please type your message below."
     else:
+        # ------------------------------------------------------------
+        # WhatsApp tutoring bridge — same brain as the web tutor.
+        # Grade-aware, subject-safe, tutor-memory-aware.
+        # ------------------------------------------------------------
+        if _HAS_BRIDGE and _ask_tutor:
+            try:
+                result = _ask_tutor(sid, text)
+                note  = (result or {}).get("note") or ""
+                reply = (result or {}).get("response") or ""
+                if note:
+                    return f"{note}\n\n{reply}"
+                return reply or "I couldn't work out an answer for that. Try rephrasing."
+            except Exception as _e:
+                print(f"whatsapp: ask_tutor failed: {_e}")
+                return (
+                    "I had trouble understanding that just now. "
+                    "Try asking again in a simpler way, or type *HELP*."
+                )
         return f"🤔 I didn't understand, *{name}*. Type *HELP* to see all commands."
 
 

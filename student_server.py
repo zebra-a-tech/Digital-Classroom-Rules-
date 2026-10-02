@@ -6,6 +6,14 @@ from datetime import datetime, timedelta
 
 app = Flask(__name__)
 
+
+# Digital Classroom Rules assignment system
+from assignment_system import register_assignment_system
+register_assignment_system(app)
+app.secret_key = 'dcr-secret-key-2026-change-this-later'
+app.permanent_session_lifetime = __import__('datetime').timedelta(days=7)
+
+
 # RAILWAY_DB_INIT — ensure database exists on startup
 import os as _db_os
 if not _db_os.path.exists("digital_classroom.db"):
@@ -17,6 +25,7 @@ from parent_assist import register_parent_assist
 from marking_flow import register_marking_flow
 from whatsapp_webhook import register_whatsapp_webhook
 from student_learning import register_student_learning
+from auth import register_auth_routes, login_required, current_user
 
 # === Register all routes ===
 register_parent_assist(app)
@@ -31,10 +40,44 @@ register_student_learning(app)
 
 DB = "digital_classroom.db"
 
-SUBJECTS = [
+
+def student(sid):
+    """Fetch a student record by ID."""
+    conn = sqlite3.connect(DB)
+    conn.row_factory = sqlite3.Row
+    row = conn.execute("SELECT * FROM students WHERE id = ?", (sid,)).fetchone()
+    conn.close()
+    return row
+
+
+# Subject list is derived from the curriculum table at startup.
+# Every subject with at least one curriculum row becomes selectable.
+# Falls back to a safe default if the DB is unavailable.
+_SUBJECTS_FALLBACK = [
     "Maths", "English", "Science", "Social Studies", "Geography",
-    "History", "Biology", "Chemistry", "Physics", "Economics", "Accounting"
+    "History", "Biology", "Chemistry", "Physics", "Economics", "Accounting",
+    "Shona", "Ndebele",
 ]
+
+def _load_subjects():
+    try:
+        import sqlite3 as _sq
+        _c = _sq.connect(DB)
+        rows = _c.execute(
+            "SELECT DISTINCT subject FROM curriculum "
+            "WHERE subject IS NOT NULL AND subject != '' "
+            "ORDER BY subject"
+        ).fetchall()
+        _c.close()
+        found = [r[0] for r in rows]
+        if found:
+            return found
+    except Exception as _e:
+        print("SUBJECTS: falling back to default list:", _e)
+    return list(_SUBJECTS_FALLBACK)
+
+SUBJECTS = _load_subjects()
+print(f"SUBJECTS loaded: {len(SUBJECTS)} subjects")
 
 def db():
     conn = sqlite3.connect(DB)
@@ -125,9 +168,14 @@ def layout(title, sid, content):
 <html>
 <head>
 <meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light only">
+<meta name="theme-color" content="#172554">
 <title>{esc(title)}</title>
 
 <style>
+/* Force light rendering — stops Android/WebView auto-inversion
+   which was washing out pale-yellow cards on paid/trial pages. */
+html {{ color-scheme: light only; }}
 * {{
     box-sizing:border-box;
 }}
@@ -309,16 +357,7 @@ def resume_paid_route(student_id):
     return redirect(url_for("home", sid=student_id))
 
 
-@app.route("/")
-def root():
-    return """
-    <div style="font-family:Arial;padding:30px">
-        <h1>Digital Classroom Rules</h1>
-        <p>Student Portal Server</p>
-        <a href="/student/1/home">Open Tinashe's Student Portal</a>
-    </div>
-    """
-
+# Old root route disabled
 
 @app.route("/student/<int:sid>/home")
 def home(sid):
@@ -342,6 +381,12 @@ def home(sid):
     except Exception:
         paid_home = None
 
+    # Conditional copy for trial vs. used state
+    if s["free_trial_used"]:
+        trial_line = "✅ Your free trial has been used. Unlock a full 1-hour paid lesson below."
+    else:
+        trial_line = "Try your first lesson free, or unlock a full 1-hour paid lesson."
+
     content = f"""
 <div class="hero">
     <h1>Welcome, {esc(s['name'])} 👋</h1>
@@ -364,7 +409,7 @@ def home(sid):
     </a>
 
     <p style="margin-top:12px;">
-        Try your first lesson free, or unlock a full 1-hour paid lesson.
+        {trial_line}
     </p>
 </div>
 
@@ -554,8 +599,36 @@ def select_subject(sid,subject):
     conn.commit()
     conn.close()
 
-    # IMPORTANT:
-    # Selecting a subject goes directly to its student Learning Centre.
+    # --------------------------------------------------------
+    # Auto-grant the 30-minute free trial the first time a
+    # student selects a subject — as long as they haven't
+    # used it yet.
+    # --------------------------------------------------------
+    print(f"[DBG select_subject] sid={sid} subject={subject!r} free_trial_used={get_student(sid)["free_trial_used"]}")
+    try:
+        s = get_student(sid)
+        if s and not s["free_trial_used"]:
+            existing_trial = active_trial_session(sid)
+            if existing_trial:
+                return redirect(
+                    url_for(
+                        "active_session",
+                        sid=sid,
+                        session_id=existing_trial["id"]
+                    )
+                )
+            # No active trial yet → start one now and enter it.
+            return redirect(
+                url_for(
+                    "start_session",
+                    sid=sid,
+                    session_type="trial"
+                )
+            )
+    except Exception as _e:
+        print("select_subject auto-trial failed:", _e)
+
+    # Fall back to the Learning Centre.
     return redirect(url_for("centre",sid=sid))
 
 
@@ -586,18 +659,49 @@ def centre(sid):
         return "Student not found",404
 
     if not subject:
-        return redirect(url_for("home",sid=sid))
+        content = f"""
+<div class="card">
+  <h1>📚 Choose a subject first</h1>
+  <p>To open your Learning Centre, pick at least one subject to study.</p>
+  <a class="btn green" href="/student/{sid}/home">
+    Choose my subjects
+  </a>
+</div>
+"""
+        return layout("Choose a subject", sid, content)
 
     # ========================================================
-    # MASTER PAID SESSION TIMER
+    # TRIAL FIRST, THEN PAID
     # ========================================================
+    # If the student has an active (unfinished) trial session,
+    # send them straight into that trial instead of the paid gate.
+    try:
+        trial = active_trial_session(sid)
+    except Exception:
+        trial = None
+
+    if trial:
+        return redirect(
+            url_for(
+                "active_session",
+                sid=sid,
+                session_id=trial["id"]
+            )
+        )
+
+    # No active trial — check for a paid session
     try:
         from paid_access import active_paid_session
         paid = active_paid_session(sid)
     except Exception:
         paid = None
 
+    # No active paid session either: if trial not used yet, offer it;
+    # otherwise offer paid.
     if not paid:
+        if not (s and s["free_trial_used"]):
+            # Still has a free trial available → start it
+            return redirect(url_for("start_session", sid=sid, session_type="trial"))
         return redirect(url_for("paid", sid=sid))
 
     content = f"""
@@ -998,7 +1102,17 @@ def trial(sid):
     s = get_student(sid)
 
     if not subject:
-        return redirect(url_for("home",sid=sid))
+        content = f"""
+<div class="card">
+  <h1>📚 Choose a subject first</h1>
+  <p>Before you can start your free 30-minute trial, you need to pick at least one subject to study.</p>
+  <p>Your trial has <b>not</b> been used up — you still have your full 30 minutes waiting.</p>
+  <a class="btn green" href="/student/{sid}/home">
+    Choose my subjects
+  </a>
+</div>
+"""
+        return layout("Choose a subject", sid, content)
 
     # --------------------------------------------------------
     # CHECK FOR EXISTING TRIAL
@@ -1180,7 +1294,7 @@ href="/student/{sid}/home">
 
 @app.route("/student/<int:sid>/session/<int:session_id>")
 def active_session(sid,session_id):
-
+    print(f"[DBG active_session] sid={sid} session_id={session_id}")
     # --------------------------------------------------------
     # PAID MASTER SESSION
     # --------------------------------------------------------
@@ -1196,6 +1310,7 @@ def active_session(sid,session_id):
             paid = None
 
         if not paid:
+            pass
             return redirect(
                 url_for(
                     "paid",
@@ -1990,7 +2105,7 @@ def start_session(sid,session_type):
             subject,
             "trial",
             created.isoformat(),
-            created.isoformat(),
+            (created + timedelta(minutes=minutes)).isoformat(),
             created.isoformat()
         ))
 
@@ -2133,6 +2248,9 @@ def tutor_ask(sid):
     subject = get_current_subject(sid)
     message = request.form.get("message","").strip()
 
+    from subject_guard import apply_guard
+    subject, _guard_note = apply_guard(sid, subject, message)
+    _guard_html = ('<p><i>' + esc(_guard_note) + '</i></p>') if _guard_note else ''
     # Use the existing tutor engine if available.
     try:
         from tutor.brain import tutor_reply
@@ -2169,7 +2287,7 @@ def tutor_ask(sid):
 <h3>🧑‍🏫 Tutor:</h3>
 
 <div>
-{response}
+{_guard_html}{response}
 </div>
 
 </div>
@@ -2864,19 +2982,37 @@ register_playbook_connection(app)
 # ============================================================
 register_paid_access(app)
 
+from student_learning import SUBJECT_TOPICS
+from founder_guard import register_founder_guard
+register_founder_guard(app)
+from design import register_design
+register_design(app)
+from notices import register_notices
+register_notices(app)
+register_auth_routes(app)
+
+# ============================================================
+# MSASA DESIGN SYSTEM — additive /v2 routes
+# ============================================================
+try:
+    from msasa_pages import register_msasa_pages
+    register_msasa_pages(app)
+    print('Msasa pages registered: /student/<sid>/v2')
+except Exception as _msasa_err:
+    print('msasa registration FAILED:', _msasa_err)
+
 if __name__ == "__main__":
+    import os as _railway_os
+    _port = int(_railway_os.environ.get("PORT", 5001))
+    _host = "0.0.0.0" if _railway_os.environ.get("RAILWAY_ENVIRONMENT") else "127.0.0.1"
     print("")
     print("==========================================")
-    print(" DIGITAL CLASSROOM — STUDENT SERVER")
+    print(" DIGITAL CLASSROOM - STUDENT SERVER")
     print("==========================================")
     print("Student portal:")
-    print("http://127.0.0.1:5001/student/1/home")
+    print(f"http://{_host}:{_port}/student/1/home")
     print("")
-# RAILWAY_PORT_FIX
-import os as _railway_os
-_port = int(_railway_os.environ.get("PORT", 5001))
-_host = "0.0.0.0" if _railway_os.environ.get("RAILWAY_ENVIRONMENT") else "127.0.0.1"
-app.run(host=_host, port=_port, debug=False)
+    app.run(host=_host, port=_port, debug=False)
 
 
 # ============================================================

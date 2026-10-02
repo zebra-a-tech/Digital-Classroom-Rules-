@@ -1,0 +1,8 @@
+{# Usage: expires_at (ISO), paused (bool), label #}
+<div class="ms-timer" data-ms-timer data-expires-at="{{ expires_at }}" data-paused="{{ 1 if paused else 0 }}">
+  <div class="ms-timer__dial" aria-hidden="true"></div>
+  <div class="ms-timer__body">
+    <div class="ms-timer__label">{{ label|default("Time remaining") }}</div>
+    <div class="ms-timer__value ms-mono">--:--</div>
+  </div>
+</div>
