@@ -878,6 +878,8 @@ def register_paid_access(app):
             AND status='PENDING'
         """, (student_id,))
 
+        # Subject should be the student's real current subject,
+        # not a debug string. Falls back to 'Lesson' if unset.
         conn.execute("""
             INSERT INTO payment_requests
             (
@@ -886,10 +888,18 @@ def register_paid_access(app):
                 amount,
                 status
             )
-            VALUES (?, ?, ?, 'PENDING')
+            VALUES (
+                ?,
+                COALESCE(
+                    (SELECT current_subject FROM students WHERE id=?),
+                    'Lesson'
+                ),
+                ?,
+                'PENDING'
+            )
         """, (
             student_id,
-            "STUDENT_ID: " + str(student_id),
+            student_id,
             PRICE
         ))
 
