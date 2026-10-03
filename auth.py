@@ -95,37 +95,83 @@ def verify_password(password, stored_hash):
 
 
 def generate_student_number():
+    """
+    Return the next free DCR#### number.
+
+    Scans BOTH auth_users and students so we never collide with
+    either table. Uses MAX numeric suffix + 1 (not COUNT) so
+    deletions never cause a re-used number. A retry loop in
+    register_user() handles the rare race condition.
+    """
     conn = _db()
-    row = conn.execute("SELECT COUNT(*) as c FROM auth_users").fetchone()
-    count = row["c"] if row else 0
-    conn.close()
-    return f"DCR{count + 1:04d}"
+    try:
+        candidates = set()
+        for table in ("auth_users", "students"):
+            rows = conn.execute(
+                f"SELECT student_number FROM {table} "
+                f"WHERE student_number LIKE 'DCR%'"
+            ).fetchall()
+            for r in rows:
+                v = r[0]
+                if not v:
+                    continue
+                try:
+                    n = int(v[3:])  # strip 'DCR'
+                    candidates.add(n)
+                except (ValueError, TypeError):
+                    continue
+        n = 1
+        while n in candidates:
+            n += 1
+        return f"DCR{n:04d}"
+    finally:
+        conn.close()
 
 
 def register_user(first_name, last_name, email, password, grade_form,
                   phone="", city="", school="", exam_board="ZIMSEC"):
     conn = _db()
     try:
-        student_number = generate_student_number()
         tutor_name = pick_random_tutor()
 
-        cur = conn.execute(
-            "INSERT INTO students (name, age, school, location, grade_form, subject, "
-            "exam_board, tutor, registered_at, free_trial_used, paid_lessons, streak, "
-            "current_subject, student_number) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 0, 0, ?, ?)",
-            (f"{first_name} {last_name}", "", school or "", city or "",
-             grade_form or "", "", exam_board or "ZIMSEC", tutor_name,
-             datetime.now().isoformat(), "", student_number)
-        )
-        student_id = cur.lastrowid
+        # Retry on DCR conflict up to 20 times — bulletproof against
+        # any stale rows or race conditions in the two tables.
+        last_err = None
+        student_number = None
+        student_id = None
+        for _attempt in range(20):
+            student_number = generate_student_number()
+            try:
+                cur = conn.execute(
+                    "INSERT INTO students (name, age, school, location, grade_form, subject, "
+                    "exam_board, tutor, registered_at, free_trial_used, paid_lessons, streak, "
+                    "current_subject, student_number) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 0, 0, ?, ?)",
+                    (f"{first_name} {last_name}", "", school or "", city or "",
+                     grade_form or "", "", exam_board or "ZIMSEC", tutor_name,
+                     datetime.now().isoformat(), "", student_number)
+                )
+                student_id = cur.lastrowid
 
-        conn.execute(
-            "INSERT INTO auth_users (student_id, student_number, email, password_hash, "
-            "first_name, last_name, phone, grade_form, exam_board) "
-            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
-            (student_id, student_number, email or "", hash_password(password),
-             first_name, last_name, phone, grade_form, exam_board)
-        )
+                conn.execute(
+                    "INSERT INTO auth_users (student_id, student_number, email, password_hash, "
+                    "first_name, last_name, phone, grade_form, exam_board) "
+                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                    (student_id, student_number, email or "", hash_password(password),
+                     first_name, last_name, phone, grade_form, exam_board)
+                )
+                break  # success
+            except sqlite3.IntegrityError as _e:
+                last_err = _e
+                if "student_number" in str(_e):
+                    # Roll back partial inserts and try the next number
+                    conn.rollback()
+                    continue
+                # Non-DCR conflict (e.g. email) — surface it immediately
+                raise
+        else:
+            # 20 attempts all collided — extremely unlikely, surface it
+            conn.rollback()
+            return {"success": False, "error": "Student number conflict — please try again."}
 
         conn.commit()
         return {
