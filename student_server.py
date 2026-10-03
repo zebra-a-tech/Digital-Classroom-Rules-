@@ -3036,6 +3036,16 @@ except Exception as _msasa_err:
 
 
 # ============================================================
+# FOUNDER DASHBOARD / PAYMENT APPROVAL
+# ============================================================
+try:
+    from founder_payments import register_founder_payments
+    register_founder_payments(app)
+    print('Founder dashboard registered: /founder/dashboard')
+except Exception as _fp_err:
+    print('founder_payments registration FAILED:', _fp_err)
+
+# ============================================================
 # TEMPORARY: one-shot DB upload endpoint for Railway seeding
 # ============================================================
 # Disabled unless SEED_UPLOAD_TOKEN is set in the environment.
