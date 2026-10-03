@@ -98,32 +98,25 @@ def generate_student_number():
     """
     Return the next free DCR#### number.
 
-    Scans BOTH auth_users and students so we never collide with
-    either table. Uses MAX numeric suffix + 1 (not COUNT) so
-    deletions never cause a re-used number. A retry loop in
-    register_user() handles the rare race condition.
+    Uses SQL MAX(CAST(SUBSTR(...))) across BOTH auth_users and students
+    so we never collide with either table and deletions never cause
+    re-used numbers. Simple, fast, and no parsing bugs.
     """
     conn = _db()
     try:
-        candidates = set()
+        highest = 0
         for table in ("auth_users", "students"):
-            rows = conn.execute(
-                f"SELECT student_number FROM {table} "
-                f"WHERE student_number LIKE 'DCR%'"
-            ).fetchall()
-            for r in rows:
-                v = r[0]
-                if not v:
-                    continue
-                try:
-                    n = int(v[3:])  # strip 'DCR'
-                    candidates.add(n)
-                except (ValueError, TypeError):
-                    continue
-        n = 1
-        while n in candidates:
-            n += 1
-        return f"DCR{n:04d}"
+            try:
+                row = conn.execute(
+                    f"SELECT MAX(CAST(SUBSTR(student_number, 4) AS INTEGER)) AS m "
+                    f"FROM {table} "
+                    f"WHERE student_number LIKE 'DCR%'"
+                ).fetchone()
+                if row and row["m"]:
+                    highest = max(highest, int(row["m"]))
+            except Exception:
+                continue
+        return f"DCR{highest + 1:04d}"
     finally:
         conn.close()
 
