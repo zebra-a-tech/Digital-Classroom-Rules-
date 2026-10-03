@@ -97,10 +97,7 @@ def verify_password(password, stored_hash):
 def generate_student_number():
     """
     Return the next free DCR#### number.
-
-    Uses SQL MAX(CAST(SUBSTR(...))) across BOTH auth_users and students
-    so we never collide with either table and deletions never cause
-    re-used numbers. Simple, fast, and no parsing bugs.
+    Uses SQL MAX(CAST(SUBSTR(...))) across BOTH auth_users and students.
     """
     conn = _db()
     try:
