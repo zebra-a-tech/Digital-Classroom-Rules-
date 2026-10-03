@@ -536,7 +536,15 @@ def save_onboarding(student_number, age, subjects):
     """Save age and ALL chosen subjects for a newly registered pupil."""
     import os, sqlite3
     from datetime import datetime
-    path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "digital_classroom.db")
+    # Honour DB_PATH so we always write to the same DB the rest of the app uses.
+    path = os.environ.get("DB_PATH") or os.path.join(
+        os.path.dirname(os.path.abspath(__file__)),
+        "digital_classroom.db",
+    )
+    # Ensure parent dir exists (e.g. /data on Railway)
+    _parent = os.path.dirname(path)
+    if _parent:
+        os.makedirs(_parent, exist_ok=True)
     conn = sqlite3.connect(path)
     try:
         row = conn.execute("SELECT id FROM students WHERE student_number=?", (student_number,)).fetchone()
