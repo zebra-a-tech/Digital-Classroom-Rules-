@@ -3,9 +3,9 @@ from flask import request, redirect, url_for, render_template_string, session, m
 
 SHARED_CSS = """
 * { box-sizing: border-box; }
-:root { --p: #0f766e; --p-dark: #115e59; --bg: #f8fafc; --card: #ffffff; --text: #1e293b; --border: #cbd5e1; }
-body { font-family: system-ui, -apple-system, sans-serif; background: #f1f5f9; color: var(--text); margin: 0; padding: 20px 16px; min-height: 100vh; display: flex; align-items: center; justify-content: center; }
-.container { max-width: 460px; width: 100%; margin: auto; }
+:root { --p: #0f766e; --p-dark: #115e59; --bg: #f1f5f9; --card: #ffffff; --text: #1e293b; --border: #cbd5e1; }
+body { font-family: system-ui, -apple-system, sans-serif; background: #f1f5f9; color: var(--text); margin: 0; padding: 24px 16px; min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+.container { max-width: 440px; width: 100%; margin: auto; }
 .flag-stripe { height: 6px; background: linear-gradient(90deg, #006400 0%, #FFD700 25%, #D40000 50%, #000000 75%, #006400 100%); border-radius: 6px 6px 0 0; }
 .card { background: white; padding: 28px 22px; border-radius: 0 0 16px 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.06); border: 1px solid var(--border); }
 .logo { text-align: center; margin-bottom: 20px; }
@@ -184,7 +184,7 @@ def register_auth_routes(app):
             sid = cur.lastrowid
             conn.commit()
 
-            # Referral commission logic
+            # Referral commission check
             ref_code = (request.args.get("ref") or request.form.get("ref_code") or "").strip().upper()
             if ref_code:
                 try:
