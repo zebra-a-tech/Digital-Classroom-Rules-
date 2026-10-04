@@ -20,6 +20,9 @@ if TURSO_URL and TURSO_TOKEN:
         print("Turso adapter fallback to SQLite:", e)
 
 app = Flask(__name__)
+import welcome_and_referrals
+welcome_and_referrals.register_welcome_and_referrals(app)
+
 import novel_reader
 novel_reader.register_novel_reader(app)
 

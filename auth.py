@@ -164,6 +164,20 @@ def register_user(first_name, last_name, email, password, grade_form,
             return {"success": False, "error": "Student number conflict — please try again."}
 
         conn.commit()
+
+        # Award $0.10 referral bonus if referred by a valid student number
+        ref_code = (request.args.get("ref") or request.form.get("ref_code") or "").strip().upper()
+        if ref_code:
+            try:
+                ref_stu = conn.execute("SELECT id FROM students WHERE UPPER(student_number)=?", (ref_code,)).fetchone()
+                if ref_stu:
+                    ref_id = ref_stu["id"] if isinstance(ref_stu, dict) else ref_stu[0]
+                    conn.execute("INSERT INTO referral_payouts (referrer_id, referred_student_id, amount, status) VALUES (?, ?, 0.10, 'PENDING')", (ref_id, cur.lastrowid))
+                    conn.commit()
+                    print(f"[REFERRAL] Awarded $0.10 to student ID {ref_id} for referring new student {cur.lastrowid}")
+            except Exception as ref_err:
+                print("[REFERRAL ERROR]", ref_err)
+
         return {
             "success": True,
             "student_number": student_number,
