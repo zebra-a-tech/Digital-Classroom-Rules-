@@ -557,7 +557,7 @@ function updateHomeTimer() {{
         timer.innerHTML = "⏰ Lesson time finished";
 
         setTimeout(function() {{
-            window.location.href = "/student/{sid}/pay";
+            window.location.href = "/student/{sid}/payment";
         }}, 1000);
 
         return;
@@ -802,7 +802,7 @@ function updateCentreTimer() {{
         timer.innerHTML = "⏰ Lesson time finished";
 
         setTimeout(function() {{
-            window.location.href = "/student/{sid}/pay";
+            window.location.href = "/student/{sid}/payment";
         }}, 1000);
 
         return;

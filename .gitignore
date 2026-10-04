@@ -69,3 +69,9 @@ _debug_msasa.py
 
 # Termux
 .termux/
+
+# Test scripts and helpers
+checks.py
+zz_*.py
+zz_test*.py
+zz_trial.py
