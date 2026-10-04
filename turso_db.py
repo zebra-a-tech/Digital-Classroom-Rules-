@@ -1,4 +1,4 @@
-import os, requests, base64
+import os, sys, requests, base64, sqlite3
 
 TURSO_URL = os.environ.get("TURSO_DATABASE_URL", "").strip()
 TURSO_TOKEN = os.environ.get("TURSO_AUTH_TOKEN", "").strip()
@@ -95,6 +95,9 @@ class TursoCursor:
         return res
 
 class TursoConnection:
+    def __init__(self):
+        self.row_factory = None
+
     def cursor(self):
         return TursoCursor(self)
 
@@ -115,5 +118,10 @@ class TursoConnection:
     def close(self):
         pass
 
-def connect():
+def connect(*args, **kwargs):
     return TursoConnection()
+
+# Auto-patch sqlite3 globally when Turso env vars exist
+if TURSO_URL and TURSO_TOKEN:
+    sqlite3.connect = connect
+    print("🌍 Global SQLite connection successfully hooked to Turso Cloud!")
