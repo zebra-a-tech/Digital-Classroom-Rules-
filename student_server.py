@@ -27,14 +27,7 @@ def site_index():
         return redirect("/login")
     return redirect("/welcome")
 
-import welcome_and_referrals
-welcome_and_referrals.register_welcome_and_referrals(app)
 
-import novel_reader
-novel_reader.register_novel_reader(app)
-
-
-# DC_FIX_BEGIN (added by dc_fix.py)
 @app.context_processor
 def _dcfix_ctx():
     try:

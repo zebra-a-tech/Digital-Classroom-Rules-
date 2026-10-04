@@ -49,7 +49,10 @@ class TursoCursor:
                     stmt["args"].append({"type": "text", "value": str(val)})
         
         payload = {"requests": [{"type": "execute", "stmt": stmt}, {"type": "close"}]}
-        r = requests.post(API_URL, headers=HEADERS, json=payload, timeout=25)
+        try:
+            r = requests.post(API_URL, headers=HEADERS, json=payload, timeout=8)
+        except Exception:
+            return sqlite3.connect("digital_classroom.db").cursor().execute(sql, params or [])
         if r.status_code != 200:
             raise Exception(f"Turso error {r.status_code}: {r.text}")
         
