@@ -1208,12 +1208,16 @@ def register_paid_access(app):
 
         trial_learning_routes = {
             "learn",
+            "learning",
             "tutor",
             "check-answer",
             "trial-lesson",
             "playbook",
             "playbook-answer",
-            "centre"
+            "centre",
+            "profile",
+            "select",
+            "toggle"
         }
 
         if route in trial_learning_routes:
