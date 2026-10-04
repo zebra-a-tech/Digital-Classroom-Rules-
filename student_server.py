@@ -20,6 +20,13 @@ if TURSO_URL and TURSO_TOKEN:
         print("Turso adapter fallback to SQLite:", e)
 
 app = Flask(__name__)
+
+@app.route("/")
+def site_index():
+    if request.cookies.get("dcr_consent") == "1":
+        return redirect("/login")
+    return redirect("/welcome")
+
 import welcome_and_referrals
 welcome_and_referrals.register_welcome_and_referrals(app)
 
