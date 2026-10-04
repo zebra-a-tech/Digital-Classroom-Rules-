@@ -1782,16 +1782,33 @@ def trial_lesson(sid):
     if not trial:
         return redirect(url_for("trial", sid=sid))
 
-    # A paused trial must NEVER enter the actual lesson.
-    # The student must press RESUME first.
+    # If the trial is paused, auto-resume it — the student has
+    # explicitly pressed "START FREE LESSON" and expects the lesson
+    # to open. Update the DB so the session is no longer paused.
     if bool(trial["paused"]):
-        return redirect(
-            url_for(
-                "active_session",
-                sid=sid,
-                session_id=trial["id"]
+        try:
+            conn = db()
+            conn.execute(
+                "UPDATE student_sessions "
+                "SET paused=0, paused_at=NULL "
+                "WHERE id=? AND student_id=?",
+                (trial["id"], sid),
             )
-        )
+            conn.commit()
+            conn.close()
+            # Re-fetch the session
+            trial = active_trial_session(sid)
+            if not trial:
+                return redirect(url_for("trial", sid=sid))
+        except Exception as _e:
+            print("trial_lesson auto-resume failed:", _e)
+            return redirect(
+                url_for(
+                    "active_session",
+                    sid=sid,
+                    session_id=trial["id"],
+                )
+            )
 
     # The trial is actively running.
     # Now it is safe to open the actual learning lesson.

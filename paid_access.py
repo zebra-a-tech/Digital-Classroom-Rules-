@@ -1135,7 +1135,14 @@ def register_paid_access(app):
         ):
             return None
 
+                # ----------------------------------------------------
+        # Trial-only routes are always free (no paid gate).
+        # Covers /trial, /trial-lesson, /trial-content, /free-trial.
         # ----------------------------------------------------
+        if route in {"trial", "trial-lesson", "trial-content", "free-trial"}:
+            return None
+
+# ----------------------------------------------------
         # ACTIVE FREE TRIAL SESSION
         # Allow /student/<id>/session/<session_id> ONLY when
         # that session belongs to this student and is a trial.
