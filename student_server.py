@@ -6,6 +6,33 @@ from datetime import datetime, timedelta
 
 app = Flask(__name__)
 
+# DC_FIX_BEGIN (added by dc_fix.py)
+@app.context_processor
+def _dcfix_ctx():
+    try:
+        import student_playbook as _sp
+        return {"_filter_topics_for_trial": _sp._filter_topics_for_trial}
+    except Exception as _e:
+        print("DCFIX context:", _e)
+        return {}
+
+@app.route("/health")
+def _dcfix_health():
+    return "ok", 200
+
+@app.after_request
+def _dcfix_headers(resp):
+    resp.headers.setdefault("X-Content-Type-Options", "nosniff")
+    resp.headers.setdefault("X-Frame-Options", "SAMEORIGIN")
+    resp.headers.setdefault("Referrer-Policy", "strict-origin-when-cross-origin")
+    if __import__("os").environ.get("RAILWAY_ENVIRONMENT"):
+        resp.headers.setdefault("Strict-Transport-Security", "max-age=31536000")
+    return resp
+
+app.config.update(SESSION_COOKIE_HTTPONLY=True, SESSION_COOKIE_SAMESITE="Lax",
+                  SESSION_COOKIE_SECURE=bool(__import__("os").environ.get("RAILWAY_ENVIRONMENT")))
+# DC_FIX_END
+
 # ------------------------------------------------------------
 # DB bootstrap — creates the schema and seeds curriculum if the
 # database file is missing (fresh Railway container, etc).
@@ -13,7 +40,7 @@ app = Flask(__name__)
 # ------------------------------------------------------------
 try:
     import db_bootstrap
-    DB_PATH_RESOLVED = db_bootstrap.ensure_db()
+    DB_PATH_RESOLVED = db_bootstrap.ensure_db(); __import__("seed_restore").restore(DB_PATH_RESOLVED)
 except Exception as _bs_err:
     print('BOOTSTRAP: skipped due to error:', _bs_err)
     DB_PATH_RESOLVED = None
@@ -23,7 +50,7 @@ except Exception as _bs_err:
 # Digital Classroom Rules assignment system
 from assignment_system import register_assignment_system
 register_assignment_system(app)
-app.secret_key = 'dcr-secret-key-2026-change-this-later'
+app.secret_key = __import__("os").environ.get("SECRET_KEY") or 'dcr-secret-key-2026-change-this-later'
 app.permanent_session_lifetime = __import__('datetime').timedelta(days=7)
 
 

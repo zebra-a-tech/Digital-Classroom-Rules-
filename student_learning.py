@@ -1504,7 +1504,7 @@ def register_student_learning(app):
         </div>
         {% endfor %}
 
-        <p><a href="http://127.0.0.1:5001/student/{{sid}}/home">🏠 Back to Student Home</a></p>
+        <p><a href="/student/{{sid}}/home">🏠 Back to Student Home</a></p>
         </div>
         </body>
         </html>
@@ -1611,7 +1611,7 @@ def register_student_learning(app):
         📚 Choose Another Topic
         </a>
 
-        <a href="http://127.0.0.1:5001/student/{{sid}}/home">
+        <a href="/student/{{sid}}/home">
         🏠 Student Home
         </a>
         </div>

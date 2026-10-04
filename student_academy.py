@@ -605,7 +605,7 @@ def register_student_academy(app):
             </div>
 
             <a class="btn" href="/student/{sid}/learning">📚 Learning Centre</a>
-            <a class="btn" href="http://127.0.0.1:5001/student/{sid}/home">🏠 Student Home</a>
+            <a class="btn" href="/student/{sid}/home">🏠 Student Home</a>
             """
         )
 
