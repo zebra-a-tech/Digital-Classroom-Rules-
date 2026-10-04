@@ -332,34 +332,7 @@ REGISTER_HTML = """<!doctype html><html><head><meta name= content=><title>Create
 # ============================================================
 # LOGIN (no placeholder)
 # ============================================================
-LOGIN_HTML = (
-    "<!doctype html><html><head>"
-    "<meta name='viewport' content='width=device-width,initial-scale=1'>"
-    "<title>Login</title><style><style>""</style></style></head><body>"
-    "<div class='flag-stripe'></div>"
-    "<div class='container'>"
-    "<div class='logo'><div class='logo-icon'>🎓</div>"
-    "<h1>Welcome Back</h1><p>Log in to Digital Classroom Rules</p></div>"
-    "<div class='card'>"
-    "{% if error %}<div class='alert alert-error'>⚠️ {{ error }}</div>{% endif %}"
-    "<form method='POST'>"
-    "<div class='form-group'><label>Student Number</label>"
-    "<input type='text' name='student_number' required autofocus "
-    "autocomplete='username' style='text-transform:uppercase'></div>"
-    "<div class='form-group'><label>Password</label>"
-    "<input type='password' autocomplete='new-password' name='password' required></div>"
-    "<button type='submit' class='btn-primary'>Login →</button>"
-    "</form>"
-    "<p style='text-align:center;margin-top:16px'>"
-    "<a href='/forgot-password' class='link' style='font-size:13px'>"
-    "Forgot your password?</a></p>"
-    "<div class='divider'>new here?</div>"
-    "<a href='/register' style='text-decoration:none'>"
-    "<button class='btn-outline'>✨ Create Free Account</button></a>"
-    "</div>"
-    "<div class='footer'>Powered by Quick Sync IT 🇿🇼</div>"
-    "</div></body></html>"
-)
+LOGIN_HTML = """<!doctype html><html><head><meta name= content=><title>Login</title><style><style></style></style></head><body><div class=></div><div class=><div class=><div class=>🎓</div><h1>Welcome Back</h1><p>Log in to Digital Classroom Rules</p></div><div class=>{% if error %}<div class=>⚠️ {{ error }}</div>{% endif %}<form method=><div class=><label>Student Number</label><input type= name= required autofocus autocomplete= style=></div><div class=><label>Password</label><input type= readonly onfocus=readonly autocomplete=  name= required></div><button type= class=>Login →</button></form><p style=><a href= class= style=>Forgot your password?</a></p><div class=>new here?</div><a href= style=><button class=>✨ Create Free Account</button></a></div><div class=>Powered by Quick Sync IT 🇿🇼</div></div></body></html>"""
 
 
 # ============================================================
