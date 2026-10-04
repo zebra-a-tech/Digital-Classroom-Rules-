@@ -20,6 +20,9 @@ if TURSO_URL and TURSO_TOKEN:
         print("Turso adapter fallback to SQLite:", e)
 
 app = Flask(__name__)
+import novel_reader
+novel_reader.register_novel_reader(app)
+
 
 # DC_FIX_BEGIN (added by dc_fix.py)
 @app.context_processor
