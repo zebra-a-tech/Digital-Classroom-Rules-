@@ -144,6 +144,14 @@ def db():
 
 def setup():
     conn = db()
+    def safe_exec(query):
+        try:
+            conn.execute(query)
+            conn.commit()
+        except Exception:
+            pass
+
+    conn = db()
 
     conn.execute("""
         CREATE TABLE IF NOT EXISTS student_subjects (
@@ -168,7 +176,7 @@ def setup():
     """)
 
     try:
-        conn.execute("ALTER TABLE students ADD COLUMN current_subject TEXT")
+        safe_exec("ALTER TABLE students ADD COLUMN current_subject TEXT")
     except sqlite3.OperationalError:
         pass
 
