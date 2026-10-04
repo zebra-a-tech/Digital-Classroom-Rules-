@@ -1430,10 +1430,7 @@ ${{ "%.2f"|format(p['amount']) }}
 
 {% if p['status'] == 'PENDING' %}
 
-<a href="{{ url_for(
-'founder_verify_payment',
-request_id=p['id']
-) }}">
+<a href="/founder/payments/{{ p['id'] }}/approve">
 
 <button class="verify">
 ✅ VERIFY PAYMENT
@@ -1441,10 +1438,7 @@ request_id=p['id']
 
 </a>
 
-<a href="{{ url_for(
-'founder_reject_payment',
-request_id=p['id']
-) }}">
+<a href="/founder/payments/{{ p['id'] }}/reject">
 
 <button class="reject">
 ❌ REJECT
