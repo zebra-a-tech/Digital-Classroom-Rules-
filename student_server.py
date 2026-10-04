@@ -4,6 +4,21 @@ import sqlite3
 import html
 from datetime import datetime, timedelta
 
+
+# --- TURSO HTTPS DB ADAPTER ---
+import os
+TURSO_URL = os.environ.get("TURSO_DATABASE_URL", "").strip()
+TURSO_TOKEN = os.environ.get("TURSO_AUTH_TOKEN", "").strip()
+
+if TURSO_URL and TURSO_TOKEN:
+    try:
+        import turso_db
+        def db():
+            return turso_db.connect()
+        print("Connected to Turso Cloud Database via HTTPS")
+    except Exception as e:
+        print("Turso adapter fallback to SQLite:", e)
+
 app = Flask(__name__)
 
 # DC_FIX_BEGIN (added by dc_fix.py)

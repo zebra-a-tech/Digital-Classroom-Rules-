@@ -3,3 +3,4 @@ requests
 pillow
 werkzeug
 gunicorn
+libsql-experimental
