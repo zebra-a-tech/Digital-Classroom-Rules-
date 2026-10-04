@@ -1,37 +1,37 @@
-import os, sqlite3, re, hashlib
-from datetime import datetime
-from flask import request, redirect, url_for, render_template_string, session, jsonify, make_response
+import os, sqlite3
+from flask import request, redirect, url_for, render_template_string, session, make_response
 
 SHARED_CSS = """
-:root { --p: #0f766e; --p-dark: #115e59; --bg: #f8fafc; --card: #ffffff; --text: #1e293b; --border: #e2e8f0; }
-body { font-family: system-ui, -apple-system, sans-serif; background: #f1f5f9; color: var(--text); margin: 0; padding: 16px; min-height: 100vh; display: flex; align-items: center; justify-content: center; }
-.container { max-width: 480px; width: 100%; margin: 20px auto; }
-.flag-stripe { height: 6px; background: linear-gradient(90deg, #006400 0%, #FFD700 25%, #D40000 50%, #000000 75%, #006400 100%); border-radius: 4px 4px 0 0; }
-.card { background: white; padding: 28px 24px; border-radius: 0 0 16px 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.06); border: 1px solid var(--border); }
+* { box-sizing: border-box; }
+:root { --p: #0f766e; --p-dark: #115e59; --bg: #f8fafc; --card: #ffffff; --text: #1e293b; --border: #cbd5e1; }
+body { font-family: system-ui, -apple-system, sans-serif; background: #f1f5f9; color: var(--text); margin: 0; padding: 20px 16px; min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+.container { max-width: 460px; width: 100%; margin: auto; }
+.flag-stripe { height: 6px; background: linear-gradient(90deg, #006400 0%, #FFD700 25%, #D40000 50%, #000000 75%, #006400 100%); border-radius: 6px 6px 0 0; }
+.card { background: white; padding: 28px 22px; border-radius: 0 0 16px 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.06); border: 1px solid var(--border); }
 .logo { text-align: center; margin-bottom: 20px; }
 .logo-icon { font-size: 2.8rem; margin-bottom: 6px; }
 h1 { margin: 0 0 6px; font-size: 1.5rem; color: #0f172a; text-align: center; }
 p.sub { margin: 0 0 20px; color: #64748b; font-size: 0.9rem; text-align: center; }
 .form-group { margin-bottom: 16px; }
 label { display: block; font-size: 0.88rem; font-weight: 600; margin-bottom: 6px; color: #334155; }
-input, select { width: 100%; padding: 12px 14px; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 0.95rem; box-sizing: border-box; background: #f8fafc; }
+input, select { width: 100%; padding: 12px 14px; border-radius: 8px; border: 1px solid var(--border); font-size: 0.95rem; background: #f8fafc; color: #1e293b; }
 input:focus, select:focus { outline: none; border-color: var(--p); background: white; }
 .btn-submit { width: 100%; padding: 14px; border-radius: 8px; background: var(--p); color: white; border: none; font-size: 1rem; font-weight: bold; cursor: pointer; margin-top: 8px; }
 .btn-submit:hover { background: var(--p-dark); }
-.btn-alt { display: block; text-align: center; padding: 12px; border-radius: 8px; background: #f1f5f9; color: var(--p); text-decoration: none; font-weight: 600; margin-top: 10px; border: 1px solid #cbd5e1; }
+.btn-alt { display: block; text-align: center; padding: 12px; border-radius: 8px; background: #f8fafc; color: var(--p); text-decoration: none; font-weight: 600; margin-top: 12px; border: 1px solid var(--border); }
 .alert { padding: 12px; border-radius: 8px; font-size: 0.88rem; margin-bottom: 16px; }
 .alert-error { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
 .footer { text-align: center; font-size: 0.8rem; color: #64748b; margin-top: 20px; }
-.subj-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; max-height: 160px; overflow-y: auto; padding: 8px; border: 1px solid #e2e8f0; border-radius: 8px; background: #f8fafc; }
+.notice { background: #fffbeb; border-left: 4px solid #f59e0b; padding: 10px 12px; border-radius: 6px; font-size: 0.85rem; color: #92400e; margin-bottom: 16px; }
 """
 
-LOGIN_HTML = f"""<!doctype html>
+LOGIN_HTML = """<!doctype html>
 <html>
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Login - Digital Classroom Rules</title>
-  <style>{SHARED_CSS}</style>
+  <style>""" + SHARED_CSS + """</style>
 </head>
 <body>
   <div class="container">
@@ -42,7 +42,7 @@ LOGIN_HTML = f"""<!doctype html>
         <h1>Welcome Back</h1>
         <p class="sub">Log in to Digital Classroom Rules</p>
       </div>
-      {{% if error %}}<div class="alert alert-error">⚠️ {{{{ error }}}}</div>{{% endif %}}
+      {% if error %}<div class="alert alert-error">⚠️ {{ error }}</div>{% endif %}
       <form method="POST">
         <div class="form-group">
           <label>Student Number</label>
@@ -62,13 +62,13 @@ LOGIN_HTML = f"""<!doctype html>
 </body>
 </html>"""
 
-REGISTER_HTML = f"""<!doctype html>
+REGISTER_HTML = """<!doctype html>
 <html>
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Create Account - Digital Classroom Rules</title>
-  <style>{SHARED_CSS}</style>
+  <style>""" + SHARED_CSS + """</style>
 </head>
 <body>
   <div class="container">
@@ -79,15 +79,15 @@ REGISTER_HTML = f"""<!doctype html>
         <h1>Create Account</h1>
         <p class="sub">Digital Classroom Rules</p>
       </div>
-      {{% if errors %}}{{% for error in errors %}}<div class="alert alert-error">⚠️ {{{{ error }}}}</div>{{% endfor %}}{{% endif %}}
+      {% if errors %}{% for error in errors %}<div class="alert alert-error">⚠️ {{ error }}</div>{% endfor %}{% endif %}
       <form method="POST">
         <div class="form-group">
           <label>First Name *</label>
-          <input type="text" name="first_name" required>
+          <input type="text" name="first_name" required placeholder="e.g. Tinashe">
         </div>
         <div class="form-group">
           <label>Last Name *</label>
-          <input type="text" name="last_name" required>
+          <input type="text" name="last_name" required placeholder="e.g. Moyo">
         </div>
         <div class="form-group">
           <label>Phone Number * (WhatsApp)</label>
@@ -102,8 +102,11 @@ REGISTER_HTML = f"""<!doctype html>
             <option>Form 1</option><option>Form 2</option><option>Form 3</option><option>Form 4</option><option>Form 5</option><option>Form 6</option>
           </select>
         </div>
+        <div class="notice">
+          👨‍👩‍👧 <b>Parent/Guardian Notice:</b> For Grades 1–5, parents are encouraged to read and assist their child with lessons.
+        </div>
         <div class="form-group">
-          <label>Subjects * (Select primary subject)</label>
+          <label>Primary Subject *</label>
           <select name="subjects" required>
             <option value="English">English</option>
             <option value="Maths">Maths</option>
@@ -135,7 +138,7 @@ def db_conn():
         try:
             import turso_db
             return turso_db.connect()
-        except Exception: pass
+        except: pass
     return sqlite3.connect("digital_classroom.db")
 
 def register_auth_routes(app):
@@ -170,7 +173,6 @@ def register_auth_routes(app):
             pw = request.form.get("password", "").strip()
             
             conn = db_conn()
-            # Generate DCR number
             last = conn.execute("SELECT MAX(id) FROM students").fetchone()
             next_id = ((last[0] if isinstance(last, (tuple, list)) else last.get("MAX(id)", 0)) or 0) + 1
             s_num = f"DCR{next_id:04d}"
@@ -182,7 +184,7 @@ def register_auth_routes(app):
             sid = cur.lastrowid
             conn.commit()
 
-            # Referral commission check
+            # Referral commission logic
             ref_code = (request.args.get("ref") or request.form.get("ref_code") or "").strip().upper()
             if ref_code:
                 try:
@@ -206,8 +208,5 @@ def register_auth_routes(app):
         session.clear()
         return redirect("/login")
 
-def login_required(f):
-    return f
-
-def current_user():
-    return session.get("student_id")
+def login_required(f): return f
+def current_user(): return session.get("student_id")
