@@ -3186,20 +3186,13 @@ try:
 except Exception as _e:
     print("Novel reader registration:", _e)
 
+
+@app.route("/version")
+def version_check():
+    return {"status": "live", "portal": "welcome_v2_active", "timestamp": "1791207573"}
+
 if __name__ == "__main__":
-    import os as _railway_os
-    _port = int(_railway_os.environ.get("PORT", 5001))
-    _host = "0.0.0.0" if _railway_os.environ.get("RAILWAY_ENVIRONMENT") else "127.0.0.1"
-    print("")
-    print("==========================================")
-    print(" DIGITAL CLASSROOM - STUDENT SERVER")
-    print("==========================================")
-    print("Student portal:")
-    print(f"http://{_host}:{_port}/student/1/home")
-    print("")
-    app.run(host=_host, port=_port, debug=False)
-
-
-# ============================================================
-# PAID ACCESS / PAYMENT VERIFICATION
-# ============================================================
+    import os
+    port = int(os.environ.get("PORT", 8080))
+    print(f"🚀 Starting Digital Classroom on 0.0.0.0:{port}")
+    app.run(host="0.0.0.0", port=port, debug=False)
