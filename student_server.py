@@ -20,6 +20,11 @@ if TURSO_URL and TURSO_TOKEN:
         print("Turso adapter fallback to SQLite:", e)
 
 app = Flask(__name__)
+
+@app.route("/api/build-info")
+def build_info():
+    return {"status": "live", "portal": "welcome_v2", "time": "2026-10-05"}
+
 import welcome_and_referrals
 welcome_and_referrals.register_welcome_and_referrals(app)
 import novel_reader
