@@ -55,7 +55,7 @@ def _key_ok():
     if not expected:
         return False
     provided = (
-        (request.args.get("key") or "").strip()
+        ((request.args.get("key") or request.cookies.get("fk")) or "").strip()
         or (request.headers.get("X-Founder-Key") or "").strip()
     )
     return provided == expected

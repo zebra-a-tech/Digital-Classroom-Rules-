@@ -1,0 +1,15 @@
+{
+  "timestamp": "2026-10-02T00:06:58",
+  "db": "digital_classroom.db",
+  "authority": "auth_users",
+  "changes": [
+    {
+      "table": "students",
+      "id": 2,
+      "name": "Lucky zebra",
+      "old": "DCR0003",
+      "new": "DCR0001",
+      "reason": "aligned_to_auth_users"
+    }
+  ]
+}

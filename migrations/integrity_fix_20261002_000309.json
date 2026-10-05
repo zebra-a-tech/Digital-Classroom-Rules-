@@ -1,0 +1,42 @@
+{
+  "timestamp": "2026-10-02T00:03:09",
+  "db": "digital_classroom.db",
+  "changes": [
+    {
+      "table": "students",
+      "id": 2,
+      "name": "Lucky zebra",
+      "old_student_number": "DCR0001",
+      "new_student_number": "DCR0003",
+      "reason": "duplicate_or_empty"
+    },
+    {
+      "table": "paid_sessions",
+      "id": 6,
+      "student_id": 1,
+      "old_active": 1,
+      "old_paused": 1,
+      "old_total_paused_seconds": 699111,
+      "old_subject": null,
+      "new_active": 0,
+      "new_paused": 0,
+      "reason": "subject_is_null",
+      "closed_at": "2026-10-02T00:03:09.710690"
+    },
+    {
+      "table": "payment_requests",
+      "id": 7,
+      "student_id": 1,
+      "old_subject": "STUDENT_ID: 1",
+      "new_status": "REJECTED",
+      "reason": "bogus_subject_string"
+    },
+    {
+      "table": "student_sessions",
+      "id": 34,
+      "student_id": 1,
+      "duration_seconds": 4.0,
+      "note": "trial shorter than 60s \u2014 flag as non-academic"
+    }
+  ]
+}

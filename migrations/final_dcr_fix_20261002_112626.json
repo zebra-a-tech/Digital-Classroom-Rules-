@@ -1,0 +1,14 @@
+{
+  "timestamp": "2026-10-02T11:26:26",
+  "authority": "auth_users",
+  "changes": [
+    {
+      "table": "students",
+      "id": 1,
+      "name": "Tinashe",
+      "old": "DCR0001",
+      "new": "DCR0003",
+      "reason": "no_auth_row_duplicate_or_empty"
+    }
+  ]
+}
