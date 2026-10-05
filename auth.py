@@ -1,7 +1,8 @@
 import os, sqlite3
 from flask import request, redirect, url_for, render_template_string, session, make_response
 
-SHARED_CSS = """* { box-sizing: border-box; }
+SHARED_CSS = """
+* { box-sizing: border-box; }
 :root { --p: #0f766e; --p-dark: #115e59; --bg: #f1f5f9; --card: #ffffff; --text: #1e293b; --border: #cbd5e1; }
 body { font-family: system-ui, -apple-system, sans-serif; background: #f1f5f9; color: var(--text); margin: 0; padding: 24px 16px; min-height: 100vh; display: flex; align-items: center; justify-content: center; }
 .container { max-width: 440px; width: 100%; margin: auto; }
@@ -21,7 +22,8 @@ input:focus, select:focus { outline: none; border-color: var(--p); background: w
 .alert { padding: 12px; border-radius: 8px; font-size: 0.88rem; margin-bottom: 16px; }
 .alert-error { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
 .footer { text-align: center; font-size: 0.8rem; color: #64748b; margin-top: 20px; }
-.notice { background: #fffbeb; border-left: 4px solid #f59e0b; padding: 10px 12px; border-radius: 6px; font-size: 0.85rem; color: #92400e; margin-bottom: 16px; }"""
+.notice { background: #fffbeb; border-left: 4px solid #f59e0b; padding: 10px 12px; border-radius: 6px; font-size: 0.85rem; color: #92400e; margin-bottom: 16px; }
+"""
 
 LOGIN_HTML = """<!doctype html>
 <html>
