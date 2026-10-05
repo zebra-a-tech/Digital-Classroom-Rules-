@@ -11,7 +11,7 @@ COPY requirements.txt /app/requirements.txt
 RUN pip install --no-cache-dir -r /app/requirements.txt
 
 # Force fresh file copy (bypasses Docker layer cache)
-ARG CACHEBUST=1791201522
+ARG CACHEBUST=1791201805
 COPY . /app
 
 ENV PORT=8080
