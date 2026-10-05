@@ -3191,8 +3191,13 @@ except Exception as _e:
 def version_check():
     return {"status": "live", "portal": "welcome_v2_active", "timestamp": "1791207573"}
 
+
+@app.route("/api/health-check")
+def api_health():
+    return {"status": "live", "portal": "welcome_v2", "time": "1791208063"}
+
 if __name__ == "__main__":
     import os
     port = int(os.environ.get("PORT", 8080))
-    print(f"🚀 Starting Digital Classroom on 0.0.0.0:{port}")
+    print(f"🚀 Digital Classroom running on 0.0.0.0:{port}")
     app.run(host="0.0.0.0", port=port, debug=False)
