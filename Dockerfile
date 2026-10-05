@@ -1,21 +1,19 @@
-# FORCE REBUILD: 20261005_135350
 FROM python:3.13-slim
 
 WORKDIR /app
 
-# Install system deps (gcc so any C-extension in requirements compiles)
+# Install system dependencies
 RUN apt-get update \
  && apt-get install -y --no-install-recommends gcc \
  && rm -rf /var/lib/apt/lists/*
 
-# Copy and install Python deps first (better layer caching)
 COPY requirements.txt /app/requirements.txt
 RUN pip install --no-cache-dir -r /app/requirements.txt
 
-# Copy the app
+# Force fresh file copy (bypasses Docker layer cache)
+ARG CACHEBUST=1791201522
 COPY . /app
 
-# Railway sets PORT at runtime; the app reads it from env
 ENV PORT=8080
 EXPOSE 8080
 
