@@ -38,7 +38,10 @@ def register_welcome_and_referrals(app):
     # 1. WELCOME & LEGAL CONSENT LANDING PAGE
     # ========================================================
     @app.route("/welcome")
+    @app.route("/")
     def welcome_page():
+        if request.cookies.get("dcr_consent") == "1":
+            return redirect("/login")
         tpl = """<!doctype html>
 <html lang="en">
 <head>
