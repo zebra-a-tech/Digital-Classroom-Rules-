@@ -4,7 +4,7 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 # Changing BUILD_ID on every install busts the layer cache for everything below.
-ARG BUILD_ID=20261005155936
+ARG BUILD_ID=20261005155920
 ENV BUILD_ID=$BUILD_ID
 RUN echo "$BUILD_ID" > /tmp/build_id
 COPY . .

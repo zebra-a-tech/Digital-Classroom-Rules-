@@ -1,0 +1,55 @@
+# Databases and their sidecars — NEVER bake the live DB into the image
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite3
+
+# Backups of any kind
+*.BEFORE_*
+*.DCR_*
+*_before_*.py
+*_backup_*.py
+student_server_before_*.py
+student_server.OLD_*
+auth.OLD_*
+*.bak*
+
+# Logs, temp, local test artifacts
+*.log
+*.pid
+debug_trial.log
+msasa_test.log
+seed_dbg.log
+start_test.log
+railway_sim.log
+flow.html
+select_result.html
+cookies.txt
+t_home.html
+v2_*.html
+h2.html
+h3.html
+t2.html
+t3.html
+
+# Git and misc
+.git
+.gitignore
+__pycache__
+**/__pycache__
+*.pyc
+*.pyo
+.venv
+venv
+node_modules
+.DS_Store
+
+# Local inspection artifacts
+INSPECT_REPORT.txt
+inspection_report.txt
+_inspect.py
+_debug_msasa.py
+
+# Migrations audit JSONs (keep them locally; not needed in image)
+migrations/
