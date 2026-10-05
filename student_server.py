@@ -3170,6 +3170,22 @@ def _admin_seed_db():
         return f"seed failed: {type(e).__name__}: {e}", 500
 
 
+
+# ============================================================
+# MASTER WELCOME & LEGAL ANTI-PIRACY CONSENT PORTAL (FINAL)
+# ============================================================
+try:
+    import welcome_and_referrals
+    welcome_and_referrals.register_welcome_and_referrals(app)
+except Exception as _e:
+    print("Welcome portal registration:", _e)
+
+try:
+    import novel_reader
+    novel_reader.register_novel_reader(app)
+except Exception as _e:
+    print("Novel reader registration:", _e)
+
 if __name__ == "__main__":
     import os as _railway_os
     _port = int(_railway_os.environ.get("PORT", 5001))
