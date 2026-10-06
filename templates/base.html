@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#3B2A1A">
   <title>{% block title %}Digital Classroom Rules{% endblock %}</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='msasa.css') }}">
+  <link rel="stylesheet" href="/static/msasa.css">
   {% block head %}{% endblock %}
 </head>
 <body class="ms-body">
@@ -42,14 +42,14 @@
     <footer class="ms-footer" style="text-align:center;padding:24px 16px;color:#64748b;font-size:0.85rem;line-height:1.6;">
       <div><b>Digital Classroom Rules</b> · Smart People Education 🇿🇼</div>
       <div style="margin-top:6px;">
-        Support & Enquiries: 
+        Support & Enquiries:
         <a href="https://wa.me/263719809683" target="_blank" style="color:#0f766e;font-weight:bold;text-decoration:none;background:#e6f4f1;padding:3px 10px;border-radius:12px;display:inline-block;margin-left:4px;">
           💬 WhatsApp +263 71 980 9683
         </a>
       </div>
     </footer>
   </div>
-  <script src="{{ url_for('static', filename='msasa.js') }}"></script>
+  <script src="/static/msasa.js"></script>
   {% block scripts %}{% endblock %}
 </body>
 </html>
