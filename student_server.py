@@ -13,39 +13,9 @@ log = logging.getLogger("dcr")
 
 app = Flask(__name__)
 
-@app.route("/login", methods=["GET", "POST"])
-def app_login():
-    import auth
-    return auth.login()
-
-@app.route("/register", methods=["GET", "POST"])
-def app_register():
-    import auth
-    return auth.register()
-
-@app.route("/logout")
-def app_logout():
-    import auth
-    return auth.logout()
-
-@app.route("/")
-@app.route("/welcome")
-def site_index():
-    if request.cookies.get("dcr_consent") == "1":
-        return redirect("/login")
-    return render_template("welcome.html")
-
-@app.route("/consent/agree", methods=["GET", "POST"])
-def consent_agree():
-    resp = make_response(redirect("/register"))
-    resp.set_cookie("dcr_consent", "1", max_age=60*60*24*365, samesite="Lax")
-    return resp
-
-
 import auth
 if "auth" not in app.blueprints:
     app.register_blueprint(auth.auth_bp)
-
 
 @app.context_processor
 def _msasa_helpers():
@@ -64,11 +34,22 @@ def consent_agree():
     resp.set_cookie("dcr_consent", "1", max_age=60*60*24*365, samesite="Lax")
     return resp
 
+import auth
+if "auth" not in app.blueprints:
+    app.register_blueprint(auth.auth_bp)
 
-@app.route("/")
+@app.context_processor
+def _msasa_helpers():
+    return {"safe_url": lambda ep, **kw: url_for(ep if ep in app.view_functions else "site_index", **kw)}
+
+import auth
+if "auth" not in app.blueprints:
+    app.register_blueprint(auth.auth_bp)
 
 
-@app.route("/")
+@app.context_processor
+def _msasa_helpers():
+    return {"safe_url": lambda ep, **kw: url_for(ep if ep in app.view_functions else "site_index", **kw)}
 
 @app.context_processor
 def _msasa_helpers():
