@@ -13,9 +13,15 @@ log = logging.getLogger("dcr")
 
 app = Flask(__name__)
 
-# ============================================================
-# MSASA THEME ROOT & WELCOME PORTAL
-# ============================================================
+import auth
+if "auth" not in app.blueprints:
+    app.register_blueprint(auth.auth_bp)
+
+
+@app.context_processor
+def _msasa_helpers():
+    return {"safe_url": lambda ep, **kw: url_for(ep if ep in app.view_functions else "site_index", **kw)}
+
 @app.route("/")
 @app.route("/welcome")
 def site_index():
@@ -23,6 +29,17 @@ def site_index():
         return redirect("/login")
     return render_template("welcome.html")
 
+@app.route("/consent/agree", methods=["GET", "POST"])
+def consent_agree():
+    resp = make_response(redirect("/register"))
+    resp.set_cookie("dcr_consent", "1", max_age=60*60*24*365, samesite="Lax")
+    return resp
+
+
+@app.route("/")
+
+
+@app.route("/")
 
 @app.context_processor
 def _msasa_helpers():

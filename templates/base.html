@@ -10,50 +10,45 @@
 </head>
 <body class="ms-body">
   <div class="ms-shell">
-
     <header class="ms-header">
-      <a class="ms-header__brand" href="{{ safe_url('home', sid=sid) if sid is defined else '/' }}">
+      <a class="ms-header__brand" href="/">
         <span class="ms-header__mark">DCR</span>
         <span>Digital Classroom</span>
       </a>
       <nav class="ms-header__actions">
-        {% if sid is defined %}
-          <a href="{{ safe_url('progress', sid=sid) }}">Progress</a>
-          <a href="{{ safe_url('logout') }}">Logout</a>
+        {% if session.get('student_id') %}
+          <a href="/student/{{ session.get('student_id') }}/home">Dashboard</a>
+          <a href="/logout">Logout</a>
         {% else %}
-          <a href="{{ safe_url('login') }}">Login</a>
+          <a href="/login">Login</a>
+          <a href="/register" style="margin-left:8px;font-weight:bold;">Register</a>
         {% endif %}
       </nav>
     </header>
 
-    {% if sid is defined %}
+    {% if session.get('student_id') %}
     <nav class="ms-nav">
-      <a href="{{ safe_url('home', sid=sid) }}">Home</a>
-      <a href="{{ safe_url('centre', sid=sid) }}">Learning Centre</a>
-      <a href="{{ safe_url('progress', sid=sid) }}">Progress</a>
-      <a href="{{ safe_url('profile', sid=sid) }}">Profile</a>
+      <a href="/student/{{ session.get('student_id') }}/home">🏠 Home</a>
+      <a href="/student/{{ session.get('student_id') }}/library">📚 Novel Library</a>
+      <a href="/student/{{ session.get('student_id') }}/referrals">🎁 Refer & Earn</a>
+      <a href="/student/{{ session.get('student_id') }}/profile">👤 Profile</a>
     </nav>
     {% endif %}
 
     <main class="ms-main">
-      {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-          {% for cat, msg in messages %}
-            <div class="ms-banner {% if cat == 'error' %}ms-banner--err{% elif cat == 'ok' %}ms-banner--ok{% endif %}" role="status">
-              {{ msg }}
-            </div>
-          {% endfor %}
-        {% endif %}
-      {% endwith %}
-
       {% block content %}{% endblock %}
     </main>
 
-    <footer class="ms-footer">
-      Digital Classroom Rules · Zimbabwe · <span class="ms-mono">+263 719 809 683</span>
+    <footer class="ms-footer" style="text-align:center;padding:24px 16px;color:#64748b;font-size:0.85rem;line-height:1.6;">
+      <div><b>Digital Classroom Rules</b> · Smart People Education 🇿🇼</div>
+      <div style="margin-top:6px;">
+        Support & Enquiries: 
+        <a href="https://wa.me/263719809683" target="_blank" style="color:#0f766e;font-weight:bold;text-decoration:none;background:#e6f4f1;padding:3px 10px;border-radius:12px;display:inline-block;margin-left:4px;">
+          💬 WhatsApp +263 71 980 9683
+        </a>
+      </div>
     </footer>
   </div>
-
   <script src="{{ url_for('static', filename='msasa.js') }}"></script>
   {% block scripts %}{% endblock %}
 </body>
