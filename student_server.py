@@ -13,46 +13,21 @@ log = logging.getLogger("dcr")
 
 app = Flask(__name__)
 
-@app.context_processor
-def _msasa_helpers():
-    return {"safe_url": lambda ep, **kw: url_for(ep if ep in app.view_functions else "site_index", **kw)}
-
+# ============================================================
+# MSASA THEME ROOT & WELCOME PORTAL
+# ============================================================
 @app.route("/")
+@app.route("/welcome")
 def site_index():
     if request.cookies.get("dcr_consent") == "1":
         return redirect("/login")
     return render_template("welcome.html")
 
 
-# ---- register safe_url as a Jinja global if missing ----
-def _safe_url(endpoint, **kw):
-    try:
-        return url_for(endpoint, **kw)
-    except Exception:
-        return "/"
+@app.context_processor
+def _msasa_helpers():
+    return {"safe_url": lambda ep, **kw: url_for(ep if ep in app.view_functions else "site_index", **kw)}
 
-try:
-    app.jinja_env.globals.setdefault("safe_url", _safe_url)
-except Exception:
-    pass
-# --------------------------------------------------------
-
-app.secret_key = os.environ.get("SECRET_KEY", "dcr-dev-secret-change-me")
-app.config.update(SESSION_COOKIE_HTTPONLY=True, SESSION_COOKIE_SAMESITE="Lax")
-app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
-
-app.register_blueprint(home_bp)
-app.register_blueprint(auth_bp)
-app.register_blueprint(novel_bp)
-
-STARTED = time.time()
-DB_STATUS = "not initialised"
-try:
-    dcr_db.init()
-    DB_STATUS = "ok (" + dcr_db.mode() + ")"
-except Exception as e:  # never crash the boot: /api/health-check must still answer
-    DB_STATUS = "error: " + str(e)[:200]
-    log.exception("DB init failed")
 
 
 def _info():
