@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}Welcome - Digital Classroom Rules{% endblock %}
+{% block content %}
+<div class="ms-card" style="text-align:center;padding:28px 16px;margin-bottom:16px;">
+  <div style="font-size:3rem">🎓</div>
+  <h1 style="color:#3B2A1A;margin:8px 0">Digital Classroom Rules</h1>
+  <p style="color:#64748b;margin:0">Zimbabwe Premier Smart Learning Platform</p>
+</div>
+<div class="ms-card" style="margin-bottom:16px;">
+  <div style="background:#EBF5F0;color:#1E5E3A;padding:4px 10px;border-radius:12px;display:inline-block;font-weight:bold;font-size:0.8rem">🚀 Top IT & Educational Specialists</div>
+  <h2 style="color:#3B2A1A;margin:12px 0 8px">💡 Built for Academic Success</h2>
+  <p style="color:#475569">Syllabus-aligned curriculum delivering interactive lessons, audio novels, and tutor guidance.</p>
+</div>
+<div class="ms-card">
+  <h2 style="color:#3B2A1A">⚖️ Privacy & Legal Copyright Notice</h2>
+  <div style="background:#FEF2F2;border-left:4px solid #DC2626;padding:12px;border-radius:6px;color:#991B1B;font-size:0.9rem;margin:12px 0">
+    <b>🚨 STRICT COPYRIGHT NOTICE:</b> All lessons, playbooks, novels, and algorithms are legally protected. Unauthorized duplication, screen recording, or digital scraping will result in immediate legal action.
+  </div>
+  <form action="/consent/agree" method="POST">
+    <button type="submit" class="ms-btn ms-btn--primary" style="width:100%;padding:14px;background:#1E5E3A;color:white;border:none;border-radius:8px;font-weight:bold;cursor:pointer">
+      ✅ I Agree & Continue to Classroom →
+    </button>
+  </form>
+</div>
+{% endblock %}

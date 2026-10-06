@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block title %}Create Account - Digital Classroom Rules{% endblock %}
+{% block content %}
+<div style="max-width:480px;margin:20px auto;">
+  <div class="ms-card">
+    <div style="text-align:center;margin-bottom:20px;">
+      <div style="font-size:2.8rem;margin-bottom:6px">📝</div>
+      <h1 style="margin:0 0 6px;font-size:1.5rem;color:#3B2A1A;">Create Account</h1>
+      <p style="margin:0;color:#64748b;font-size:0.9rem;">Digital Classroom Rules</p>
+    </div>
+    {% if errors %}
+      {% for error in errors %}
+        <div style="background:#FEF2F2;color:#991B1B;padding:10px 14px;border-radius:8px;margin-bottom:14px;font-size:0.88rem;border:1px solid #FECACA;">
+          ⚠️ {{ error }}
+        </div>
+      {% endfor %}
+    {% endif %}
+    <form method="POST">
+      <div style="margin-bottom:12px;">
+        <label style="display:block;font-weight:600;font-size:0.88rem;margin-bottom:4px;color:#334155;">First Name *</label>
+        <input type="text" name="first_name" required placeholder="e.g. Tinashe" style="width:100%;padding:10px 12px;border:1px solid #CBD5E1;border-radius:8px;box-sizing:border-box;font-size:0.95rem;">
+      </div>
+      <div style="margin-bottom:12px;">
+        <label style="display:block;font-weight:600;font-size:0.88rem;margin-bottom:4px;color:#334155;">Last Name *</label>
+        <input type="text" name="last_name" required placeholder="e.g. Moyo" style="width:100%;padding:10px 12px;border:1px solid #CBD5E1;border-radius:8px;box-sizing:border-box;font-size:0.95rem;">
+      </div>
+      <div style="margin-bottom:12px;">
+        <label style="display:block;font-weight:600;font-size:0.88rem;margin-bottom:4px;color:#334155;">Phone Number * (WhatsApp / EcoCash)</label>
+        <input type="tel" name="phone" required placeholder="0771234567" style="width:100%;padding:10px 12px;border:1px solid #CBD5E1;border-radius:8px;box-sizing:border-box;font-size:0.95rem;">
+      </div>
+      <div style="margin-bottom:12px;">
+        <label style="display:block;font-weight:600;font-size:0.88rem;margin-bottom:4px;color:#334155;">Grade / Form *</label>
+        <select name="grade_form" required style="width:100%;padding:10px 12px;border:1px solid #CBD5E1;border-radius:8px;box-sizing:border-box;font-size:0.95rem;">
+          <option value="">Choose your grade...</option>
+          <option>Grade 1</option><option>Grade 2</option><option>Grade 3</option><option>Grade 4</option>
+          <option>Grade 5</option><option>Grade 6</option><option>Grade 7</option>
+          <option>Form 1</option><option>Form 2</option><option>Form 3</option><option>Form 4</option><option>Form 5</option><option>Form 6</option>
+        </select>
+      </div>
+      <div style="background:#FFFBEB;border-left:4px solid #F59E0B;padding:10px 12px;border-radius:6px;font-size:0.85rem;color:#92400E;margin-bottom:14px;">
+        👨‍👩‍👧 <b>Parent/Guardian Notice:</b> For Grades 1–5, parents are encouraged to read and assist their child with lessons.
+      </div>
+      <div style="margin-bottom:12px;">
+        <label style="display:block;font-weight:600;font-size:0.88rem;margin-bottom:4px;color:#334155;">Primary Subject *</label>
+        <select name="subjects" required style="width:100%;padding:10px 12px;border:1px solid #CBD5E1;border-radius:8px;box-sizing:border-box;font-size:0.95rem;">
+          <option value="English">English</option>
+          <option value="Maths">Maths</option>
+          <option value="Science">Science</option>
+          <option value="Social Studies">Social Studies</option>
+          <option value="Shona">Shona</option>
+          <option value="Ndebele">Ndebele</option>
+          <option value="Commerce">Commerce</option>
+          <option value="Geography">Geography</option>
+          <option value="History">History</option>
+        </select>
+      </div>
+      <div style="margin-bottom:18px;">
+        <label style="display:block;font-weight:600;font-size:0.88rem;margin-bottom:4px;color:#334155;">Password * (min 6 chars)</label>
+        <input type="password" name="password" required minlength="6" readonly onfocus="this.removeAttribute('readonly');" autocomplete="new-password" style="width:100%;padding:10px 12px;border:1px solid #CBD5E1;border-radius:8px;box-sizing:border-box;font-size:0.95rem;">
+      </div>
+      <button type="submit" style="width:100%;background:#1E5E3A;color:white;border:none;padding:14px;border-radius:8px;font-size:1rem;font-weight:bold;cursor:pointer;">
+        Create My Account →
+      </button>
+    </form>
+    <div style="text-align:center;margin:16px 0 8px;color:#94a3b8;font-size:0.85rem">already have an account?</div>
+    <a href="/login" style="display:block;text-align:center;padding:12px;background:#F8FAFC;border:1px solid #CBD5E1;border-radius:8px;text-decoration:none;color:#1E5E3A;font-weight:bold;">
+      🔑 Login Instead
+    </a>
+  </div>
+</div>
+{% endblock %}

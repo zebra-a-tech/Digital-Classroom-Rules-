@@ -1,7 +1,7 @@
 import os, hmac
 from datetime import datetime
 from urllib.parse import quote
-from flask import Blueprint, request, session, redirect, url_for, make_response
+from flask import render_template, Blueprint, request, session, redirect, url_for, make_response
 import dcr_db as db
 from ui import page
 
@@ -65,7 +65,7 @@ F_DASH = """
 def index():
     if request.cookies.get("dcr_consent") == "1":
         return redirect(url_for("home.dashboard"))
-    return page("Welcome", CONSENT)
+    return render_template("welcome.html")
 
 
 @home_bp.route("/agree", methods=["POST"])

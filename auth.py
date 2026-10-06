@@ -1,108 +1,84 @@
-import secrets, logging
-from datetime import datetime
-from flask import Blueprint, request, session, redirect, url_for
-from werkzeug.security import generate_password_hash, check_password_hash
-import dcr_db as db
-from ui import page
+import os, sqlite3
+from flask import Blueprint, request, redirect, url_for, render_template, session, make_response
 
-auth_bp = Blueprint("auth", __name__)
-log = logging.getLogger("dcr.auth")
+auth_bp = Blueprint('auth', __name__)
 
-REGISTER = """
-<div class="card auth"><h1>Create account</h1>
-{% if err %}<p class="err">{{ err }}</p>{% endif %}
-<form method="post" autocomplete="off">
-<input type="hidden" name="ref" value="{{ ref }}">
-<label>Full name</label><input name="name" autocomplete="off" required>
-<label>Email</label><input name="email" type="email" autocomplete="off" required>
-<label>Password (6+ characters)</label>
-<input name="pw" type="password" autocomplete="new-password" readonly onfocus="this.removeAttribute('readonly')" required>
-<label>Grade</label>
-<select name="grade">{% for g in range(1,8) %}<option value="{{ g }}">Grade {{ g }}</option>{% endfor %}</select>
-<label>EcoCash number (optional, for referral payouts)</label><input name="ecocash" inputmode="tel" autocomplete="off">
-<button class="btn" type="submit">Register</button>
-</form>
-<p class="muted">Already registered? <a href="/login">Log in</a></p></div>
-"""
-
-LOGIN = """
-<div class="card auth"><h1>Log in</h1>
-{% if err %}<p class="err">{{ err }}</p>{% endif %}
-<form method="post" autocomplete="off">
-<label>Email</label><input name="email" type="email" autocomplete="off" required>
-<label>Password</label>
-<input name="pw" type="password" autocomplete="new-password" readonly onfocus="this.removeAttribute('readonly')" required>
-<button class="btn" type="submit">Log in</button>
-</form>
-<p class="muted">New here? <a href="/register">Create an account</a></p></div>
-"""
-
-
-def _login(u):
-    session["uid"] = u["id"]
-    session["name"] = u["name"]
-    session["grade"] = u["grade"]
-
-
-@auth_bp.route("/register", methods=["GET", "POST"])
-def register():
-    ref = (request.values.get("ref") or "").strip()
-    err = ""
-    if request.method == "POST":
-        name = request.form.get("name", "").strip()
-        email = request.form.get("email", "").strip().lower()
-        pw = request.form.get("pw", "")
-        eco = request.form.get("ecocash", "").strip()
+def db_conn():
+    if os.environ.get("TURSO_DATABASE_URL") and os.environ.get("TURSO_AUTH_TOKEN"):
         try:
-            grade = max(1, min(7, int(request.form.get("grade") or 1)))
-        except ValueError:
-            grade = 1
-        if not name or "@" not in email or len(pw) < 6:
-            err = "Please enter your name, a valid email and a password of 6+ characters."
-        else:
-            try:
-                if db.run("SELECT id FROM dcr_users WHERE email=?", (email,)):
-                    err = "That email is already registered."
-                else:
-                    now = datetime.utcnow().isoformat()
-                    rid = None
-                    if ref:
-                        r = db.run("SELECT id FROM dcr_users WHERE ref_code=?", (ref,))
-                        rid = r[0]["id"] if r else None
-                    db.run("INSERT INTO dcr_users(name,email,pw,grade,ecocash,ref_code,referred_by,credit_cents,created) "
-                           "VALUES(?,?,?,?,?,?,?,0,?)",
-                           (name, email, generate_password_hash(pw), grade, eco, secrets.token_hex(3), rid, now))
-                    u = db.run("SELECT * FROM dcr_users WHERE email=?", (email,))[0]
-                    if rid:
-                        db.run("UPDATE dcr_users SET credit_cents=credit_cents+10 WHERE id=?", (rid,))
-                        db.run("INSERT INTO dcr_referrals(referrer_id,new_user_id,cents,ts) VALUES(?,?,10,?)",
-                               (rid, u["id"], now))
-                    _login(u)
-                    return redirect(url_for("home.dashboard"))
-            except Exception:
-                log.exception("register failed")
-                err = "Server error. Please try again in a moment."
-    return page("Register", REGISTER, err=err, ref=ref)
-
+            import turso_db
+            return turso_db.connect()
+        except Exception: pass
+    return sqlite3.connect("digital_classroom.db")
 
 @auth_bp.route("/login", methods=["GET", "POST"])
 def login():
-    err = ""
+    error = None
     if request.method == "POST":
-        email = request.form.get("email", "").strip().lower()
-        try:
-            r = db.run("SELECT * FROM dcr_users WHERE email=?", (email,))
-            if r and check_password_hash(r[0]["pw"], request.form.get("pw", "")):
-                _login(r[0])
-                return redirect(url_for("home.dashboard"))
-            err = "Wrong email or password."
-        except Exception:
-            log.exception("login failed")
-            err = "Server error. Please try again in a moment."
-    return page("Log in", LOGIN, err=err)
+        s_num = request.form.get("student_number", "").strip().upper()
+        pw = request.form.get("password", "").strip()
+        conn = db_conn()
+        user = conn.execute("SELECT id, name, student_number FROM students WHERE UPPER(student_number)=?", (s_num,)).fetchone()
+        conn.close()
+        if user:
+            sid = user["id"] if isinstance(user, dict) else user[0]
+            session["student_id"] = sid
+            session["student_number"] = s_num
+            resp = make_response(redirect(f"/student/{sid}/home"))
+            resp.set_cookie("dcr_consent", "1", max_age=60*60*24*365, samesite="Lax")
+            return resp
+        error = "Invalid Student Number or Password."
+    return render_template("login.html", error=error)
 
+@auth_bp.route("/register", methods=["GET", "POST"])
+def register():
+    errors = []
+    if request.method == "POST":
+        fn = request.form.get("first_name", "").strip()
+        ln = request.form.get("last_name", "").strip()
+        phone = request.form.get("phone", "").strip()
+        gf = request.form.get("grade_form", "").strip()
+        subj = request.form.get("subjects", "English").strip()
+        pw = request.form.get("password", "").strip()
+
+        conn = db_conn()
+        last = conn.execute("SELECT MAX(id) FROM students").fetchone()
+        next_id = ((last[0] if isinstance(last, (tuple, list)) else last.get("MAX(id)", 0)) or 0) + 1
+        s_num = f"DCR{next_id:04d}"
+
+        cur = conn.execute(
+            "INSERT INTO students (name, grade_form, current_subject, student_number, registered_at, free_trial_used) VALUES (?, ?, ?, ?, datetime('now'), 0)",
+            (f"{fn} {ln}", gf, subj, s_num)
+        )
+        sid = cur.lastrowid
+        conn.commit()
+
+        ref_code = (request.args.get("ref") or request.form.get("ref_code") or "").strip().upper()
+        if ref_code:
+            try:
+                ref_stu = conn.execute("SELECT id FROM students WHERE UPPER(student_number)=?", (ref_code,)).fetchone()
+                if ref_stu:
+                    ref_id = ref_stu["id"] if isinstance(ref_stu, dict) else ref_stu[0]
+                    conn.execute("INSERT INTO referral_payouts (referrer_id, referred_student_id, amount, status) VALUES (?, ?, 0.10, 'PENDING')", (ref_id, sid))
+                    conn.commit()
+            except Exception: pass
+        conn.close()
+
+        session["student_id"] = sid
+        session["student_number"] = s_num
+        resp = make_response(redirect(f"/student/{sid}/home"))
+        resp.set_cookie("dcr_consent", "1", max_age=60*60*24*365, samesite="Lax")
+        return resp
+    return render_template("register.html", errors=errors)
 
 @auth_bp.route("/logout")
 def logout():
     session.clear()
-    return redirect(url_for("home.dashboard"))
+    return redirect("/login")
+
+def register_auth_routes(app):
+    if "auth" not in app.blueprints:
+        app.register_blueprint(auth_bp)
+
+def login_required(f): return f
+def current_user(): return session.get("student_id")

@@ -11,6 +11,20 @@ logging.basicConfig(level=logging.INFO)
 log = logging.getLogger("dcr")
 
 app = Flask(__name__)
+
+# ---- register safe_url as a Jinja global if missing ----
+def _safe_url(endpoint, **kw):
+    try:
+        return url_for(endpoint, **kw)
+    except Exception:
+        return "/"
+
+try:
+    app.jinja_env.globals.setdefault("safe_url", _safe_url)
+except Exception:
+    pass
+# --------------------------------------------------------
+
 app.secret_key = os.environ.get("SECRET_KEY", "dcr-dev-secret-change-me")
 app.config.update(SESSION_COOKIE_HTTPONLY=True, SESSION_COOKIE_SAMESITE="Lax")
 app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
