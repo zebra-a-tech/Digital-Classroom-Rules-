@@ -8,7 +8,7 @@ def db_conn():
         try:
             import turso_db
             return turso_db.connect()
-        except Exception: pass
+        except: pass
     return sqlite3.connect("digital_classroom.db")
 
 @auth_bp.route("/login", methods=["GET", "POST"])
@@ -61,7 +61,7 @@ def register():
                     ref_id = ref_stu["id"] if isinstance(ref_stu, dict) else ref_stu[0]
                     conn.execute("INSERT INTO referral_payouts (referrer_id, referred_student_id, amount, status) VALUES (?, ?, 0.10, 'PENDING')", (ref_id, sid))
                     conn.commit()
-            except Exception: pass
+            except: pass
         conn.close()
 
         session["student_id"] = sid

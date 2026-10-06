@@ -1,5 +1,5 @@
 import os, time, logging
-from flask import Flask, jsonify
+from flask import Flask, request, redirect, url_for, render_template, session, make_response, jsonify
 from werkzeug.middleware.proxy_fix import ProxyFix
 import dcr_db
 from ui import page
@@ -10,7 +10,19 @@ from novel_reader import novel_bp
 logging.basicConfig(level=logging.INFO)
 log = logging.getLogger("dcr")
 
+
 app = Flask(__name__)
+
+@app.context_processor
+def _msasa_helpers():
+    return {"safe_url": lambda ep, **kw: url_for(ep if ep in app.view_functions else "site_index", **kw)}
+
+@app.route("/")
+def site_index():
+    if request.cookies.get("dcr_consent") == "1":
+        return redirect("/login")
+    return render_template("welcome.html")
+
 
 # ---- register safe_url as a Jinja global if missing ----
 def _safe_url(endpoint, **kw):

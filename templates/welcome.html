@@ -2,22 +2,36 @@
 {% block title %}Welcome - Digital Classroom Rules{% endblock %}
 {% block content %}
 <div class="ms-card" style="text-align:center;padding:28px 16px;margin-bottom:16px;">
-  <div style="font-size:3rem">🎓</div>
-  <h1 style="color:#3B2A1A;margin:8px 0">Digital Classroom Rules</h1>
-  <p style="color:#64748b;margin:0">Zimbabwe Premier Smart Learning Platform</p>
+  <div style="font-size:3rem;margin-bottom:8px">🎓</div>
+  <h1 style="color:#3B2A1A;margin:0 0 6px;font-size:1.8rem">Digital Classroom Rules</h1>
+  <p style="color:#64748b;margin:0;font-size:1rem">Zimbabwe's Premier Smart Learning Platform for Primary & Secondary Learners</p>
 </div>
+
 <div class="ms-card" style="margin-bottom:16px;">
-  <div style="background:#EBF5F0;color:#1E5E3A;padding:4px 10px;border-radius:12px;display:inline-block;font-weight:bold;font-size:0.8rem">🚀 Top IT & Educational Specialists</div>
-  <h2 style="color:#3B2A1A;margin:12px 0 8px">💡 Built for Academic Success</h2>
-  <p style="color:#475569">Syllabus-aligned curriculum delivering interactive lessons, audio novels, and tutor guidance.</p>
+  <div style="background:#EBF5F0;color:#1E5E3A;padding:4px 10px;border-radius:12px;display:inline-block;font-weight:bold;font-size:0.8rem;margin-bottom:10px;">
+    🚀 Powered by Top IT & Educational Specialists
+  </div>
+  <h2 style="color:#3B2A1A;margin:0 0 8px;font-size:1.3rem">💡 Built for Academic Success</h2>
+  <p style="color:#475569;margin-bottom:14px;line-height:1.5">
+    Syllabus-aligned curriculum delivering interactive lessons, 10-chapter audio novels, auto-marked homework, and tutor guidance.
+  </p>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;">
+    <div style="background:#FAF7F2;padding:12px;border-radius:8px;border:1px solid #EADBCC;">
+      <b>📚 827+ Lessons</b><br><span style="font-size:0.85rem;color:#64748b">Maths, Science, English & Commercials</span>
+    </div>
+    <div style="background:#FAF7F2;padding:12px;border-radius:8px;border:1px solid #EADBCC;">
+      <b>🎧 Audio Novels</b><br><span style="font-size:0.85rem;color:#64748b">Play/Pause voice read-along with quizzes</span>
+    </div>
+  </div>
 </div>
-<div class="ms-card">
-  <h2 style="color:#3B2A1A">⚖️ Privacy & Legal Copyright Notice</h2>
-  <div style="background:#FEF2F2;border-left:4px solid #DC2626;padding:12px;border-radius:6px;color:#991B1B;font-size:0.9rem;margin:12px 0">
-    <b>🚨 STRICT COPYRIGHT NOTICE:</b> All lessons, playbooks, novels, and algorithms are legally protected. Unauthorized duplication, screen recording, or digital scraping will result in immediate legal action.
+
+<div class="ms-card" style="margin-bottom:20px;">
+  <h2 style="color:#3B2A1A;margin:0 0 8px;font-size:1.2rem">⚖️ Privacy & Strict Copyright Protection</h2>
+  <div style="background:#FEF2F2;border-left:4px solid #DC2626;padding:12px;border-radius:6px;color:#991B1B;font-size:0.88rem;margin:12px 0;line-height:1.5;">
+    <b>🚨 STRICT COPYRIGHT NOTICE:</b> All lessons, playbooks, novels, and algorithms are protected under intellectual property law. Unauthorized duplication, screen recording, or digital scraping will result in immediate legal action.
   </div>
   <form action="/consent/agree" method="POST">
-    <button type="submit" class="ms-btn ms-btn--primary" style="width:100%;padding:14px;background:#1E5E3A;color:white;border:none;border-radius:8px;font-weight:bold;cursor:pointer">
+    <button type="submit" style="width:100%;padding:14px;background:#1E5E3A;color:white;border:none;border-radius:8px;font-weight:bold;font-size:1.05rem;cursor:pointer;">
       ✅ I Agree & Continue to Classroom →
     </button>
   </form>
